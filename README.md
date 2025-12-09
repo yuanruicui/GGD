@@ -22,7 +22,6 @@
 ## 目录结构
 ```
 .
-├─ ggd.html
 ├─ index.html
 └─ vercel.json
 ```
