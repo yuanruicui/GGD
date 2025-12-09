@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/ggd.html" }
+  ],
+  "cleanUrls": true
+}
