@@ -790,6 +790,52 @@
             background-color: #6c3a3a;
         }
 
+        /* 在一起关系面板样式 */
+        .together-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #1a2a42;
+            border-radius: 10px;
+            border: 1px solid #2a3c5e;
+        }
+        
+        .together-title {
+            font-size: 1.1rem;
+            color: #4cc9f0;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .together-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .together-tag {
+            padding: 6px 12px;
+            background-color: #2a5c3d;
+            color: #7ae582;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .together-tag .remove-btn {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -1133,6 +1179,20 @@
         body.apple .suggestion-hint {
             color: #8e8e93;
         }
+        
+        body.apple .together-container {
+            background-color: #ffffff;
+            border-color: #e5e5ea;
+        }
+        
+        body.apple .together-title {
+            color: #007aff;
+        }
+        
+        body.apple .together-tag {
+            background-color: #d1f7c4;
+            color: #2d8500;
+        }
     </style>
 </head>
 <body>
@@ -1154,9 +1214,6 @@
                     </button>
                     <button class="status-btn clear-names-btn" id="clearNamesBtn">
                         <i class="fas fa-user-times"></i> 清空名称
-                    </button>
-                    <button class="status-btn" id="exportBtn">
-                        <i class="fas fa-download"></i> 导出记录
                     </button>
                     <button class="status-btn" id="toggleThemeBtn">
                         <i class="fas fa-adjust"></i> 切换主题
@@ -1204,7 +1261,22 @@
                 </div>
                 <div class="excluded-roles-list" id="excludedRolesList">
                     <div style="color: #a0a7c2; text-align: center; width: 100%; padding: 5px;">
-                        暂无排除身份，点击“管理排除身份”设置
+                        暂无排除身份，点击"管理排除身份"设置
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 在一起关系面板 -->
+            <div class="together-container">
+                <div class="together-title">
+                    <i class="fas fa-users"></i> 玩家在一起状态（本轮会议前）
+                    <button class="btn btn-primary" id="manageTogetherBtn" style="margin-left:auto; font-size:0.8rem; padding:5px 10px;">
+                        <i class="fas fa-plus"></i> 标记在一起
+                    </button>
+                </div>
+                <div class="together-list" id="togetherList">
+                    <div style="color: #a0a7c2; text-align: center; width: 100%; padding: 5px;">
+                        暂无记录，点击"标记在一起"按钮添加
                     </div>
                 </div>
             </div>
@@ -1293,8 +1365,8 @@
         </div>
     </div>
     
-        <!-- 管理明牌身份模态框 -->
-        <div class="modal" id="openRolesModal">
+    <!-- 管理明牌身份模态框 -->
+    <div class="modal" id="openRolesModal">
         <div class="modal-content" style="max-width: 700px;">
             <h3 class="modal-title"><i class="fas fa-eye"></i> 管理本局明牌身份</h3>
             <div class="modal-message">
@@ -1362,6 +1434,33 @@
         </div>
     </div>
     
+    <!-- 标记在一起关系模态框 -->
+    <div class="modal" id="togetherModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3 class="modal-title"><i class="fas fa-users"></i> 标记玩家在一起</h3>
+            <div class="modal-message">
+                <p>选择两个玩家标记为"在一起"（本轮会议前）。</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="togetherPlayer1">玩家 1：</label>
+                <select id="togetherPlayer1" class="modal-input" style="margin-bottom: 10px;">
+                    <option value="">请选择玩家</option>
+                </select>
+                
+                <label for="togetherPlayer2">玩家 2：</label>
+                <select id="togetherPlayer2" class="modal-input">
+                    <option value="">请选择玩家</option>
+                </select>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="saveTogetherBtn">标记在一起</button>
+                <button class="btn btn-danger" id="cancelTogetherBtn">取消</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         // ========== 全局变量 ==========
         const gameState = {
@@ -1373,7 +1472,9 @@
             contradictions: [],
             customRoles: [], // 自定义身份池
             openRoles: [],    // 明牌身份
-            excludedRoles: [] // 本局排除身份（房主设置）
+            excludedRoles: [], // 本局排除身份（房主设置）
+            togetherGroups: [],      // 记录玩家在一起的组合
+            meetingStartTogether: [] // 本轮会议开始时的在一起状态
         };
         
         const baseRoleOptions = [
@@ -1489,29 +1590,174 @@
             return events;
         }
         
+        // ========== 在一起关系管理函数 ==========
         /**
-         * 获取某姓名在文本中的出现位置索引
+         * 记录玩家在一起的组合
          */
-        function getMentionPositions(text, name) {
-            const idxs = [];
-            let from = 0;
-            while (true) {
-                const i = text.indexOf(name, from);
-                if (i === -1) break;
-                idxs.push(i);
-                from = i + name.length;
+        function recordTogetherGroup(player1Id, player2Id) {
+            // 确保组合的唯一性（按ID排序）
+            const id1 = Math.min(player1Id, player2Id);
+            const id2 = Math.max(player1Id, player2Id);
+            
+            const existing = gameState.togetherGroups.find(g => 
+                (g.player1Id === id1 && g.player2Id === id2) || 
+                (g.player1Id === id2 && g.player2Id === id1)
+            );
+            
+            if (!existing) {
+                gameState.togetherGroups.push({
+                    player1Id: id1,
+                    player2Id: id2,
+                    meeting: gameState.currentMeeting
+                });
+                saveGameData();
+                renderTogetherList();
+                showNotification("已记录在一起组合", 'success');
+            } else {
+                showNotification("该组合已存在", 'warning');
             }
-            return idxs;
         }
         
         /**
-         * 判断索引附近是否存在可疑语境词
+         * 删除在一起组合
          */
-        function isSuspiciousContext(text, index) {
-            const window = 12;
-            const ctx = text.substring(Math.max(0, index - window), Math.min(text.length, index + window));
-            const words = ['怀疑','可疑','奇怪','鬼鬼祟祟','不对劲','有问题','行为异常'];
-            return words.some(w => ctx.includes(w));
+        function removeTogetherGroup(player1Id, player2Id) {
+            const id1 = Math.min(player1Id, player2Id);
+            const id2 = Math.max(player1Id, player2Id);
+            
+            gameState.togetherGroups = gameState.togetherGroups.filter(g => 
+                !(g.player1Id === id1 && g.player2Id === id2)
+            );
+            saveGameData();
+            renderTogetherList();
+            showNotification("已删除在一起组合", 'info');
+        }
+        
+        /**
+         * 在会议开始时记录当前的在一起状态
+         */
+        function recordMeetingStartTogetherState() {
+            gameState.meetingStartTogether = [...gameState.togetherGroups];
+        }
+        
+        /**
+         * 检查玩家是否和任何玩家在一起
+         */
+        function isPlayerTogetherWithAny(playerId) {
+            return gameState.meetingStartTogether.some(g => 
+                g.player1Id === playerId || g.player2Id === playerId
+            );
+        }
+        
+        /**
+         * 获取和指定玩家在一起的玩家ID列表
+         */
+        function getTogetherPlayers(playerId) {
+            const togetherPlayers = [];
+            gameState.meetingStartTogether.forEach(g => {
+                if (g.player1Id === playerId) togetherPlayers.push(g.player2Id);
+                if (g.player2Id === playerId) togetherPlayers.push(g.player1Id);
+            });
+            return togetherPlayers;
+        }
+        
+        /**
+         * 获取本轮会议没有和任何玩家在一起的玩家
+         */
+        function getIsolatedPlayers() {
+            const alivePlayers = gameState.players.filter(p => p.status === 'alive');
+            const isolatedPlayers = [];
+            
+            alivePlayers.forEach(player => {
+                const isTogether = isPlayerTogetherWithAny(player.id);
+                if (!isTogether) {
+                    isolatedPlayers.push(player);
+                }
+            });
+            
+            return isolatedPlayers;
+        }
+        
+        /**
+         * 渲染在一起关系列表
+         */
+        function renderTogetherList() {
+            const togetherList = document.getElementById('togetherList');
+            togetherList.innerHTML = '';
+            
+            if (gameState.togetherGroups.length === 0) {
+                togetherList.innerHTML = '<div style="color: #a0a7c2; text-align: center; width: 100%; padding: 5px;">暂无记录，点击"标记在一起"按钮添加</div>';
+            } else {
+                gameState.togetherGroups.forEach(group => {
+                    const player1 = gameState.players.find(p => p.id === group.player1Id);
+                    const player2 = gameState.players.find(p => p.id === group.player2Id);
+                    
+                    if (player1 && player2) {
+                        const togetherTag = document.createElement('div');
+                        togetherTag.className = 'together-tag';
+                        togetherTag.innerHTML = `
+                            <span>${player1.name} 和 ${player2.name}</span>
+                            <button class="remove-btn" onclick="removeTogetherGroup(${player1.id}, ${player2.id})" title="删除">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        togetherList.appendChild(togetherTag);
+                    }
+                });
+            }
+        }
+        
+        /**
+         * 显示标记在一起模态框
+         */
+        function showTogetherModal() {
+            const modal = document.getElementById('togetherModal');
+            const player1Select = document.getElementById('togetherPlayer1');
+            const player2Select = document.getElementById('togetherPlayer2');
+            
+            // 清空并重新填充选项
+            player1Select.innerHTML = '<option value="">请选择玩家</option>';
+            player2Select.innerHTML = '<option value="">请选择玩家</option>';
+            
+            gameState.players.forEach(player => {
+                if (player.status === 'alive') {
+                    const option1 = document.createElement('option');
+                    option1.value = player.id;
+                    option1.textContent = player.name;
+                    player1Select.appendChild(option1);
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = player.id;
+                    option2.textContent = player.name;
+                    player2Select.appendChild(option2);
+                }
+            });
+            
+            modal.style.display = 'flex';
+        }
+        
+        /**
+         * 保存在一起关系
+         */
+        function saveTogetherGroup() {
+            const player1Select = document.getElementById('togetherPlayer1');
+            const player2Select = document.getElementById('togetherPlayer2');
+            
+            const player1Id = parseInt(player1Select.value);
+            const player2Id = parseInt(player2Select.value);
+            
+            if (!player1Id || !player2Id) {
+                showNotification("请选择两个玩家", 'warning');
+                return;
+            }
+            
+            if (player1Id === player2Id) {
+                showNotification("不能选择同一个玩家", 'warning');
+                return;
+            }
+            
+            recordTogetherGroup(player1Id, player2Id);
+            document.getElementById('togetherModal').style.display = 'none';
         }
         
         // ========== 核心功能函数 ==========
@@ -1781,7 +2027,7 @@
             const excludedRolesList = document.getElementById('excludedRolesList');
             excludedRolesList.innerHTML = '';
             if (!gameState.excludedRoles || gameState.excludedRoles.length === 0) {
-                excludedRolesList.innerHTML = '<div style="color: #a0a7c2; text-align: center; width: 100%; padding: 5px;">暂无排除身份，点击“管理排除身份”设置</div>';
+                excludedRolesList.innerHTML = '<div style="color: #a0a7c2; text-align: center; width: 100%; padding: 5px;">暂无排除身份，点击"管理排除身份"设置</div>';
                 return;
             }
             gameState.excludedRoles.forEach(role => {
@@ -2169,6 +2415,9 @@
         
         // ========== 会议管理 ==========
         function startMeeting() {
+            // 记录会议开始时的在一起状态
+            recordMeetingStartTogetherState();
+            
             gameState.isMeetingActive = true;
             gameState.currentMeeting++;
             updateMeetingStatus();
@@ -2189,12 +2438,14 @@
         }
         
         function newGame() {
-            if (confirm("确定开始新游戏吗？当前会议记录和玩家状态将被重置，但玩家名称和自定义职业会保留。")) {
+            if (confirm("确定开始新游戏吗？当前会议记录、玩家状态和在一起关系将被重置，但玩家名称和自定义职业会保留。")) {
                 gameState.currentMeeting = 1;
                 gameState.isMeetingActive = false;
                 gameState.speeches = [];
                 gameState.selectedPlayerId = null;
                 gameState.contradictions = [];
+                gameState.togetherGroups = [];
+                gameState.meetingStartTogether = [];
                 playerNamesBeingEdited.clear();
                 
                 gameState.players.forEach(player => {
@@ -2203,24 +2454,12 @@
                 
                 renderPlayers();
                 renderSpeeches();
+                renderTogetherList();
                 updateMeetingStatus();
                 clearAnalysis();
                 saveGameData();
-                showNotification("新游戏已开始！所有玩家状态已重置为存活。", 'success');
+                showNotification("新游戏已开始！所有玩家状态和在一起关系已重置。", 'success');
             }
-        }
-        
-        function exportData() {
-            const dataStr = JSON.stringify(gameState, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-            const exportFileDefaultName = `鹅鸭杀记录_${new Date().toISOString().split('T')[0]}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showNotification("数据已导出！", 'success');
         }
         
         // ========== 发言记录和分析 ==========
@@ -2537,6 +2776,21 @@
                 summaryHTML += `<p><strong style="color:#ff9e00">沉默玩家：</strong> ${silentPlayers.join('、')} 在本轮会议中没有发言。</p>`;
             }
             
+            // 新增：孤立玩家分析（没有和任何玩家在一起的玩家）
+            const isolatedPlayers = getIsolatedPlayers();
+            if (isolatedPlayers.length > 0) {
+                summaryHTML += `<p><strong style="color:#f72585">孤立玩家：</strong>`;
+                const isolatedNames = isolatedPlayers.map(p => {
+                    const togetherCount = gameState.togetherGroups.filter(g => 
+                        g.player1Id === p.id || g.player2Id === p.id
+                    ).length;
+                    return `${p.name}${togetherCount > 0 ? ` (有${togetherCount}条在一起记录)` : ''}`;
+                }).join('、');
+                summaryHTML += `${isolatedNames} 在本轮会议前没有和任何玩家在一起。</p>`;
+            } else {
+                summaryHTML += `<p><strong style="color:#38b000">孤立玩家：</strong> 所有存活玩家都有在一起的对象。</p>`;
+            }
+            
             document.getElementById('summaryContent').innerHTML = summaryHTML;
             showNotification("会议总结已生成！", 'success');
         }
@@ -2708,6 +2962,13 @@
                 suggestionHTML += `<p>暂无明确的投票目标。建议根据本轮会议的发言和可疑行为决定。</p>`;
             }
             
+            // 新增：考虑孤立玩家因素
+            const isolatedPlayers = getIsolatedPlayers();
+            if (isolatedPlayers.length > 0) {
+                suggestionHTML += `<p><strong style="color:#f72585">注意孤立玩家：</strong>`;
+                suggestionHTML += `${isolatedPlayers.map(p => p.name).join('、')} 没有和任何玩家在一起，可能需要特别关注。</p>`;
+            }
+            
             suggestionHTML += `
                 <p><strong>投票策略建议：</strong></p>
                 <ul>
@@ -2715,6 +2976,7 @@
                     <li>关注没有提供有效信息的沉默玩家</li>
                     <li>注意过度辩解或转移话题的玩家</li>
                     <li>考虑角色技能和游戏进程</li>
+                    <li>关注没有和任何玩家在一起的孤立玩家</li>
                 </ul>
             `;
             
@@ -2797,13 +3059,13 @@
             renderPlayers();
             renderSpeeches();
             renderOpenRoles();
+            renderTogetherList();
             updateMeetingStatus();
             
             // 事件监听器
             document.getElementById('startMeetingBtn').addEventListener('click', startMeeting);
             document.getElementById('endMeetingBtn').addEventListener('click', endMeeting);
             document.getElementById('newGameBtn').addEventListener('click', newGame);
-            document.getElementById('exportBtn').addEventListener('click', exportData);
             document.getElementById('clearNamesBtn').addEventListener('click', clearPlayerNames);
             document.getElementById('recordSpeechBtn').addEventListener('click', recordSpeech);
             document.getElementById('analyzeSpeechBtn').addEventListener('click', analyzeSpeech);
@@ -2825,6 +3087,7 @@
             document.getElementById('saveOpenRolesBtn').addEventListener('click', saveOpenRoles);
             document.getElementById('cancelOpenRolesBtn').addEventListener('click', cancelOpenRoles);
             document.getElementById('addOpenRoleBtn').addEventListener('click', addOpenRoleFromModal);
+            
             // 排除身份事件
             document.getElementById('manageExcludedRolesBtn').addEventListener('click', showExcludedRolesModal);
             document.getElementById('saveExcludedRolesBtn').addEventListener('click', saveExcludedRoles);
@@ -2839,6 +3102,13 @@
             
             document.getElementById('toggleThemeBtn').addEventListener('click', () => {
                 document.body.classList.toggle('apple');
+            });
+            
+            // 在一起关系事件
+            document.getElementById('manageTogetherBtn').addEventListener('click', showTogetherModal);
+            document.getElementById('saveTogetherBtn').addEventListener('click', saveTogetherGroup);
+            document.getElementById('cancelTogetherBtn').addEventListener('click', () => {
+                document.getElementById('togetherModal').style.display = 'none';
             });
             
             const speechInput = document.getElementById('speechInput');
