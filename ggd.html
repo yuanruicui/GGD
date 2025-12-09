@@ -1,0 +1,2586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鹅鸭杀发言记录分析工具 - 最终版V2</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a3c5e;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ff9966, #ff5e62);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0a7c2;
+            margin-bottom: 20px;
+        }
+        
+        .game-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .game-status {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .status-btn {
+            padding: 10px 20px;
+            background-color: #2a3c5e;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .meeting-btn {
+            background: linear-gradient(135deg, #ff5e62 0%, #ff9966 100%);
+        }
+        
+        .player-count-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #16213e;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #2a3c5e;
+        }
+        
+        .player-count-control label {
+            font-weight: bold;
+            color: #4cc9f0;
+        }
+        
+        .player-count-control input {
+            width: 60px;
+            background-color: #1a2a42;
+            border: 1px solid #2a3c5e;
+            color: #e6e6e6;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background-color: #16213e;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            border: 1px solid #2a3c5e;
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #4cc9f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #2a3c5e;
+            padding-bottom: 10px;
+        }
+        
+        .players-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        @media (max-width: 1200px) {
+            .players-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .players-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .players-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .player-card {
+            background-color: #1a2a42;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0.7;
+            transform: scale(0.95);
+        }
+        
+        .player-card:hover {
+            transform: translateY(-5px) scale(0.97);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            opacity: 0.9;
+        }
+        
+        .player-card.active {
+            border-color: #4cc9f0;
+            box-shadow: 0 0 20px rgba(76, 201, 240, 0.7);
+            opacity: 1;
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        
+        .player-card.dead {
+            background-color: #2a1a2e;
+        }
+        
+        .player-name-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .player-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #e6e6e6;
+            flex-grow: 1;
+        }
+        
+        .player-name-input {
+            background-color: transparent;
+            border: 1px solid #2a3c5e;
+            color: #e6e6e6;
+            padding: 5px 10px;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        
+        .player-name-input:focus {
+            outline: none;
+            border-color: #4cc9f0;
+        }
+        
+        .player-role {
+            font-size: 0.9rem;
+            color: #a0a7c2;
+            margin-bottom: 10px;
+        }
+        
+        .role-select-container {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .role-select {
+            flex-grow: 1;
+            background-color: #2a3c5e;
+            color: #e6e6e6;
+            border: 1px solid #3a4c6e;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        
+        .role-select:focus {
+            outline: none;
+            border-color: #4cc9f0;
+        }
+        
+        .add-role-btn {
+            background-color: #4361ee;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .add-role-btn:hover {
+            background-color: #3a56d4;
+        }
+        
+        .player-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+            margin-top: auto;
+        }
+        
+        .alive {
+            background-color: #2a5c3d;
+            color: #7ae582;
+        }
+        
+        .dead {
+            background-color: #5c2a2a;
+            color: #ff7b7b;
+        }
+        
+        .speech-input-container {
+            margin-top: 20px;
+            position: relative;
+        }
+        
+        .speech-input {
+            width: 100%;
+            height: 120px;
+            background-color: #1a2a42;
+            border: 1px solid #2a3c5e;
+            border-radius: 10px;
+            padding: 15px;
+            color: #e6e6e6;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .speech-input:focus {
+            outline: none;
+            border-color: #4cc9f0;
+            box-shadow: 0 0 10px rgba(76, 201, 240, 0.3);
+        }
+        
+        .autocomplete-suggestions {
+            position: absolute;
+            background-color: #1a2a42;
+            border: 1px solid #2a3c5e;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #2a3c5e;
+            transition: background-color 0.2s;
+        }
+        
+        .suggestion-item:hover {
+            background-color: #2a3c5e;
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-player-name {
+            font-weight: bold;
+            color: #4cc9f0;
+        }
+        
+        .suggestion-hint {
+            font-size: 0.8rem;
+            color: #a0a7c2;
+            margin-left: 10px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #38b000 0%, #2d9140 100%);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9e00 0%, #ff5e62 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .speech-log {
+            max-height: 600px;
+            min-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .speech-item {
+            background-color: #1a2a42;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4361ee;
+        }
+        
+        .speech-item.suspicious {
+            border-left-color: #ff5e62;
+            background-color: #2a1a2e;
+        }
+        
+        .speech-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .speaker {
+            font-weight: bold;
+            color: #4cc9f0;
+        }
+        
+        .meeting-number {
+            color: #a0a7c2;
+            font-size: 0.9rem;
+        }
+        
+        .speech-content {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .speech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .tag {
+            padding: 4px 10px;
+            background-color: #2a3c5e;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .tag.role-claim {
+            background-color: #3d348b;
+            color: #b5b8ff;
+        }
+        
+        .tag.location {
+            background-color: #2a5c3d;
+            color: #7ae582;
+        }
+        
+        .tag.suspect {
+            background-color: #5c2a2a;
+            color: #ff7b7b;
+        }
+        
+        .tag.alibi {
+            background-color: #2a4a5c;
+            color: #7ad7f0;
+        }
+        
+        .analysis-panel {
+            grid-column: 1 / -1;
+        }
+        
+        .contradictions-list {
+            margin-top: 20px;
+        }
+        
+        .contradiction-item {
+            background-color: #2a1a2e;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #f72585;
+        }
+        
+        .contradiction-player {
+            font-weight: bold;
+            color: #ff7b7b;
+            margin-bottom: 8px;
+        }
+        
+        .contradiction-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .contradiction-statement {
+            background-color: #1a2a42;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .meeting-indicator {
+            font-size: 0.9rem;
+            color: #a0a7c2;
+            margin-top: 5px;
+        }
+        
+        .summary-box {
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #2a3c5e;
+        }
+        
+        .summary-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #4cc9f0;
+        }
+        
+        .summary-content {
+            line-height: 1.6;
+        }
+        
+        .highlight {
+            background-color: rgba(255, 158, 0, 0.2);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: #16213e;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid #2a3c5e;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #4cc9f0;
+            text-align: center;
+        }
+        
+        .modal-message {
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .modal-input {
+            width: 100%;
+            background-color: #1a2a42;
+            border: 1px solid #2a3c5e;
+            color: #e6e6e6;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        
+        .modal-input:focus {
+            outline: none;
+            border-color: #4cc9f0;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #a0a7c2;
+            font-size: 0.9rem;
+            border-top: 1px solid #2a3c5e;
+        }
+        
+        /* 明牌身份面板样式 */
+        .open-roles-container {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #1a2a42;
+            border-radius: 10px;
+            border: 1px solid #2a3c5e;
+        }
+        
+        .open-roles-title {
+            font-size: 1.2rem;
+            color: #4cc9f0;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .open-roles-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .open-role-tag {
+            padding: 8px 15px;
+            background-color: #2a5c3d;
+            color: #7ae582;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .open-role-tag.duck {
+            background-color: #5c2a2a;
+            color: #ff7b7b;
+        }
+        
+        .open-role-tag.neutral {
+            background-color: #2a4a5c;
+            color: #7ad7f0;
+        }
+        
+        .open-role-tag .remove-btn {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .role-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .role-option {
+            padding: 6px 12px;
+            background-color: #2a3c5e;
+            color: #a0a7c2;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .role-option:hover {
+            background-color: #3a4c6e;
+            color: #e6e6e6;
+        }
+        
+        .role-option.selected {
+            background-color: #4361ee;
+            color: white;
+        }
+        
+        .clear-names-btn {
+            margin-left: 10px;
+            background-color: #5c2a2a;
+            color: #ff7b7b;
+        }
+        
+        .clear-names-btn:hover {
+            background-color: #6c3a3a;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .game-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-feather-alt"></i> 鹅鸭杀发言记录分析工具 - 最终版V2</h1>
+            <p class="subtitle">记录玩家发言、提取关键信息、检测矛盾点、优化游戏决策</p>
+            
+            <div class="game-controls">
+                <div class="game-status">
+                    <button class="status-btn meeting-btn" id="startMeetingBtn">
+                        <i class="fas fa-bullhorn"></i> 开始会议
+                    </button>
+                    <button class="status-btn" id="endMeetingBtn">
+                        <i class="fas fa-flag-checkered"></i> 结束会议
+                    </button>
+                    <button class="status-btn" id="newGameBtn">
+                        <i class="fas fa-plus-circle"></i> 新游戏
+                    </button>
+                    <button class="status-btn clear-names-btn" id="clearNamesBtn">
+                        <i class="fas fa-user-times"></i> 清空名称
+                    </button>
+                    <button class="status-btn" id="exportBtn">
+                        <i class="fas fa-download"></i> 导出记录
+                    </button>
+                </div>
+                
+                <div class="player-count-control">
+                    <label for="playerCount">玩家数量:</label>
+                    <input type="number" id="playerCount" min="4" max="16" value="10">
+                    <button class="btn btn-primary" id="updatePlayerCountBtn">
+                        <i class="fas fa-sync-alt"></i> 更新
+                    </button>
+                </div>
+            </div>
+            
+            <div id="meetingStatus">
+                当前状态：游戏进行中 - <span id="currentMeeting">第 1 次会议</span>
+            </div>
+        </header>
+        
+        <!-- 明牌身份面板 -->
+        <div class="open-roles-container">
+            <div class="open-roles-title">
+                <span><i class="fas fa-eye"></i> 本局明牌身份</span>
+                <button class="btn btn-primary" id="manageOpenRolesBtn">
+                    <i class="fas fa-cog"></i> 管理明牌身份
+                </button>
+            </div>
+            <div class="open-roles-list" id="openRolesList">
+                <!-- 明牌身份标签将通过JS动态生成 -->
+                <div style="color: #a0a7c2; text-align: center; width: 100%; padding: 10px;">
+                    暂无明牌身份，点击"管理明牌身份"按钮设置
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="panel">
+                <h2 class="panel-title"><i class="fas fa-users"></i> 玩家列表</h2>
+                <div class="players-container" id="playersContainer">
+                    <!-- 玩家卡片将通过JS动态生成 -->
+                </div>
+                
+                <div class="speech-input-container">
+                    <h3 class="panel-title"><i class="fas fa-microphone"></i> 记录发言</h3>
+                    <div id="selectedPlayerInfo">当前未选择玩家 (点击玩家卡片下方的"选择发言"按钮)</div>
+                    
+                    <textarea class="speech-input" id="speechInput" placeholder="在此输入玩家的发言内容..."></textarea>
+                    <div class="autocomplete-suggestions" id="autocompleteSuggestions"></div>
+                    
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="recordSpeechBtn">
+                            <i class="fas fa-save"></i> 记录发言
+                        </button>
+                        <button class="btn btn-warning" id="analyzeSpeechBtn">
+                            <i class="fas fa-search"></i> 智能分析
+                        </button>
+                        <button class="btn btn-danger" id="markSuspiciousBtn">
+                            <i class="fas fa-exclamation-triangle"></i> 标记可疑
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title"><i class="fas fa-history"></i> 发言记录</h2>
+                <div class="speech-log" id="speechLog">
+                    <!-- 发言记录将通过JS动态生成 -->
+                </div>
+            </div>
+            
+            <div class="panel analysis-panel">
+                <h2 class="panel-title"><i class="fas fa-chart-line"></i> 分析与总结</h2>
+                <div class="button-group">
+                    <button class="btn btn-success" id="generateSummaryBtn">
+                        <i class="fas fa-file-alt"></i> 生成会议总结
+                    </button>
+                    <button class="btn btn-warning" id="findContradictionsBtn">
+                        <i class="fas fa-balance-scale"></i> 检测矛盾发言
+                    </button>
+                    <button class="btn btn-primary" id="suggestVoteBtn">
+                        <i class="fas fa-vote-yea"></i> 投票建议
+                    </button>
+                </div>
+                
+                <div class="summary-box" id="summaryBox">
+                    <h3 class="summary-title">会议总结</h3>
+                    <div class="summary-content" id="summaryContent">
+                        点击"生成会议总结"按钮，系统将分析所有发言并生成总结报告。
+                    </div>
+                </div>
+                
+                <div class="contradictions-list" id="contradictionsList">
+                    <!-- 矛盾点将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>鹅鸭杀发言记录分析工具 &copy; 2023 | 设计用于记录和分析《鹅鸭杀》游戏会议发言</p>
+            <p>提示：点击玩家卡片下方的"选择发言"按钮选择发言者，输入发言时自动提示玩家名称</p>
+        </footer>
+    </div>
+    
+    <!-- 添加自定义职业模态框 -->
+    <div class="modal" id="addRoleModal">
+        <div class="modal-content">
+            <h3 class="modal-title"><i class="fas fa-user-plus"></i> 添加自定义职业</h3>
+            <div class="modal-message">
+                <p>请输入新的职业名称：</p>
+            </div>
+            <input type="text" class="modal-input" id="newRoleInput" placeholder="例如：时空旅人、变形者等">
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="saveNewRoleBtn">保存</button>
+                <button class="btn btn-danger" id="cancelNewRoleBtn">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 管理明牌身份模态框 -->
+    <div class="modal" id="openRolesModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <h3 class="modal-title"><i class="fas fa-eye"></i> 管理本局明牌身份</h3>
+            <div class="modal-message">
+                <p>选择本局游戏中出现的明牌身份（轮抽身份池）。勾选的职业会显示在顶部明牌身份面板中。</p>
+                <p>提示：鹅阵营通常为绿色，鸭子阵营为红色，中立阵营为蓝色</p>
+            </div>
+            
+            <div class="role-selection" id="openRoleSelection">
+                <!-- 角色选项将通过JS动态生成 -->
+            </div>
+            
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button class="btn btn-primary" id="saveOpenRolesBtn">保存选择</button>
+                <button class="btn btn-danger" id="cancelOpenRolesBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态和数据
+        const gameState = {
+            currentMeeting: 1,
+            isMeetingActive: false,
+            players: [],
+            speeches: [],
+            selectedPlayerId: null,
+            contradictions: [],
+            customRoles: [], // 存储自定义职业
+            openRoles: []    // 存储明牌身份
+        };
+
+        // 基础角色选项 - 鹅鸭杀完整角色列表
+        const baseRoleOptions = [
+            "未知", 
+            "鹅", 
+            "鸭子", 
+            "加拿大鹅", 
+            "正义使者", 
+            "殡仪员", 
+            "警长", 
+            "复仇者", 
+            "星界行者", 
+            "模仿鹅", 
+            "刺客", 
+            "专业杀手", 
+            "静音鸭", 
+            "食鸟鸭",
+            "政治家",
+            "锁匠",
+            "冒险家",
+            "侦探",
+            "通灵",
+            "观鸟者",
+            "恋人",
+            "派对鹅",
+            "术士鸭",
+            "忍者鸭",
+            "影子鸭"
+        ];
+
+        // 角色分类：鹅阵营、鸭子阵营、中立阵营
+        const roleCategories = {
+            goose: ["鹅", "加拿大鹅", "正义使者", "殡仪员", "警长", "复仇者", "星界行者", "模仿鹅", "冒险家", "侦探", "通灵", "观鸟者", "恋人", "政治家", "锁匠"],
+            duck: ["鸭子", "刺客", "专业杀手", "静音鸭", "食鸟鸭", "术士鸭", "忍者鸭", "影子鸭"],
+            neutral: ["恋人"] // 恋人可能同时属于两个阵营，这里单独标记
+        };
+
+        // 获取所有角色选项（基础+自定义）
+        function getAllRoleOptions() {
+            return [...baseRoleOptions, ...gameState.customRoles];
+        }
+
+        // 玩家名称自动补全相关
+        let playerNamesBeingEdited = new Set();
+        let autocompleteTimeout = null;
+
+        // 初始化函数
+        function init() {
+            loadGameData();
+            renderPlayers();
+            renderSpeeches();
+            renderOpenRoles();
+            updateMeetingStatus();
+            
+            // 绑定事件
+            document.getElementById('startMeetingBtn').addEventListener('click', startMeeting);
+            document.getElementById('endMeetingBtn').addEventListener('click', endMeeting);
+            document.getElementById('newGameBtn').addEventListener('click', newGame);
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            document.getElementById('clearNamesBtn').addEventListener('click', clearPlayerNames);
+            document.getElementById('recordSpeechBtn').addEventListener('click', recordSpeech);
+            document.getElementById('analyzeSpeechBtn').addEventListener('click', analyzeSpeech);
+            document.getElementById('markSuspiciousBtn').addEventListener('click', markSuspicious);
+            document.getElementById('generateSummaryBtn').addEventListener('click', generateSummary);
+            document.getElementById('findContradictionsBtn').addEventListener('click', findContradictions);
+            document.getElementById('suggestVoteBtn').addEventListener('click', suggestVote);
+            document.getElementById('updatePlayerCountBtn').addEventListener('click', updatePlayerCount);
+            document.getElementById('playerCount').addEventListener('change', function() {
+                const value = parseInt(this.value);
+                if (value < 4) this.value = 4;
+                if (value > 16) this.value = 16;
+            });
+            
+            // 自定义职业相关事件
+            document.getElementById('saveNewRoleBtn').addEventListener('click', saveCustomRole);
+            document.getElementById('cancelNewRoleBtn').addEventListener('click', cancelCustomRole);
+            
+            // 明牌身份管理事件
+            document.getElementById('manageOpenRolesBtn').addEventListener('click', showOpenRolesModal);
+            document.getElementById('saveOpenRolesBtn').addEventListener('click', saveOpenRoles);
+            document.getElementById('cancelOpenRolesBtn').addEventListener('click', cancelOpenRoles);
+            
+            // 发言输入框事件
+            const speechInput = document.getElementById('speechInput');
+            speechInput.addEventListener('input', handleSpeechInput);
+            speechInput.addEventListener('keydown', handleSpeechInputKeydown);
+            
+            // 点击其他地方隐藏自动补全
+            document.addEventListener('click', function(e) {
+                const suggestions = document.getElementById('autocompleteSuggestions');
+                if (!e.target.closest('.speech-input-container')) {
+                    suggestions.style.display = 'none';
+                }
+            });
+            
+            // 模拟一些初始数据
+            if (gameState.speeches.length === 0) {
+                simulateInitialData();
+            }
+        }
+
+        // 加载游戏数据
+        function loadGameData() {
+            const savedData = localStorage.getItem('gooseGooseDuckTool');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                Object.assign(gameState, data);
+            } else {
+                // 使用默认玩家数据
+                updatePlayerCount();
+            }
+        }
+
+        // 保存游戏数据
+        function saveGameData() {
+            localStorage.setItem('gooseGooseDuckTool', JSON.stringify(gameState));
+        }
+
+        // 清空玩家名称（恢复为默认）
+        function clearPlayerNames() {
+            if (confirm("确定要清空所有玩家的自定义名称吗？这会将所有玩家名称重置为默认名称。")) {
+                gameState.players.forEach((player, index) => {
+                    player.name = `玩家${player.id}`;
+                    player.isEditingName = false;
+                });
+                playerNamesBeingEdited.clear();
+                renderPlayers();
+                saveGameData();
+                showNotification("已清空所有玩家名称", 'success');
+            }
+        }
+
+        // 更新玩家数量
+        function updatePlayerCount() {
+            const playerCountInput = document.getElementById('playerCount');
+            let playerCount = parseInt(playerCountInput.value);
+            
+            // 确保玩家数量在4-16之间
+            if (isNaN(playerCount) || playerCount < 4) playerCount = 4;
+            if (playerCount > 16) playerCount = 16;
+            
+            playerCountInput.value = playerCount;
+            
+            // 生成或调整玩家数据
+            if (gameState.players.length === 0) {
+                // 全新创建
+                gameState.players = [];
+                for (let i = 1; i <= playerCount; i++) {
+                    gameState.players.push({
+                        id: i,
+                        name: `玩家${i}`,
+                        role: "未知",
+                        status: "alive",
+                        color: getRandomColor(),
+                        isEditingName: false
+                    });
+                }
+            } else if (playerCount > gameState.players.length) {
+                // 增加玩家
+                const currentMaxId = Math.max(...gameState.players.map(p => p.id));
+                for (let i = gameState.players.length + 1; i <= playerCount; i++) {
+                    gameState.players.push({
+                        id: currentMaxId + (i - gameState.players.length),
+                        name: `玩家${i}`,
+                        role: "未知",
+                        status: "alive",
+                        color: getRandomColor(),
+                        isEditingName: false
+                    });
+                }
+            } else if (playerCount < gameState.players.length) {
+                // 减少玩家（保留前n个玩家）
+                gameState.players = gameState.players.slice(0, playerCount);
+            }
+            
+            renderPlayers();
+            saveGameData();
+            showNotification(`玩家数量已更新为 ${playerCount} 人`, 'success');
+        }
+
+        // 获取随机颜色
+        function getRandomColor() {
+            const colors = [
+                "#4cc9f0", "#4361ee", "#3a0ca3", "#f72585", "#7209b7", 
+                "#ff9e00", "#38b000", "#ff5e62", "#06d6a0", "#118ab2",
+                "#9b5de5", "#00bbf9", "#00f5d4", "#fee440", "#ff6d6d",
+                "#6a0572"
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // 渲染玩家列表
+        function renderPlayers() {
+            const playersContainer = document.getElementById('playersContainer');
+            playersContainer.innerHTML = '';
+            
+            const allRoleOptions = getAllRoleOptions();
+            
+            gameState.players.forEach(player => {
+                const playerCard = document.createElement('div');
+                playerCard.className = `player-card ${player.status === 'dead' ? 'dead' : ''} ${gameState.selectedPlayerId === player.id ? 'active' : ''}`;
+                playerCard.dataset.id = player.id;
+                
+                // 如果正在编辑名字，显示输入框
+                const nameDisplay = player.isEditingName 
+                    ? `<input type="text" class="player-name-input" value="${player.name}" data-player-id="${player.id}" onblur="updatePlayerName(${player.id}, this.value)" onkeydown="handleNameInputKeydown(${player.id}, event)">`
+                    : `<div class="player-name" onclick="event.stopPropagation(); startEditingPlayerName(${player.id})">${player.name}</div>`;
+                
+                playerCard.innerHTML = `
+                    ${nameDisplay}
+                    <div class="player-role">身份: ${player.role} ${gameState.openRoles.includes(player.role) ? '<i class="fas fa-eye" style="color:#ff9e00; margin-left:5px;" title="明牌身份"></i>' : ''}</div>
+                    <div class="role-select-container">
+                        <select class="role-select" onchange="changePlayerRole(${player.id}, this.value)" onclick="event.stopPropagation();">
+                            ${allRoleOptions.map(role => 
+                                `<option value="${role}" ${player.role === role ? 'selected' : ''}>${role}</option>`
+                            ).join('')}
+                            <option value="custom">自定义职业...</option>
+                        </select>
+                        <button class="add-role-btn" title="添加自定义职业" onclick="event.stopPropagation(); showAddRoleModal(${player.id})">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="player-status ${player.status}">
+                        ${player.status === 'alive' ? '存活' : '已淘汰'}
+                    </div>
+                    <div style="display: flex; gap: 5px; margin-top: 10px;">
+                        <button class="btn" style="padding: 5px 10px; font-size: 0.8rem; flex-grow: 1;" onclick="event.stopPropagation(); togglePlayerStatus(${player.id})">${player.status === 'alive' ? '淘汰' : '复活'}</button>
+                        <button class="btn" style="padding: 5px 10px; font-size: 0.8rem; flex-grow: 1; background-color: #4361ee;" onclick="event.stopPropagation(); selectPlayerForSpeech(${player.id})">选择发言</button>
+                    </div>
+                `;
+                
+                playersContainer.appendChild(playerCard);
+            });
+            
+            // 更新选中玩家信息
+            updateSelectedPlayerInfo();
+        }
+
+        // 显示添加自定义职业模态框
+        function showAddRoleModal(playerId) {
+            const modal = document.getElementById('addRoleModal');
+            modal.dataset.playerId = playerId || '';
+            document.getElementById('newRoleInput').value = '';
+            modal.style.display = 'flex';
+        }
+
+        // 保存自定义职业
+        function saveCustomRole() {
+            const modal = document.getElementById('addRoleModal');
+            const newRole = document.getElementById('newRoleInput').value.trim();
+            
+            if (!newRole) {
+                showNotification("请输入职业名称！", 'warning');
+                return;
+            }
+            
+            // 检查是否已存在
+            const allRoleOptions = getAllRoleOptions();
+            if (allRoleOptions.includes(newRole)) {
+                showNotification("该职业已存在！", 'warning');
+                return;
+            }
+            
+            // 添加到自定义职业列表
+            gameState.customRoles.push(newRole);
+            
+            // 如果是从玩家卡片添加的，更新该玩家的职业
+            const playerId = modal.dataset.playerId;
+            if (playerId) {
+                const player = gameState.players.find(p => p.id == playerId);
+                if (player) {
+                    player.role = newRole;
+                }
+            }
+            
+            // 关闭模态框
+            modal.style.display = 'none';
+            
+            // 重新渲染玩家列表
+            renderPlayers();
+            saveGameData();
+            
+            showNotification(`已添加自定义职业: ${newRole}`, 'success');
+        }
+
+        // 取消添加自定义职业
+        function cancelCustomRole() {
+            const modal = document.getElementById('addRoleModal');
+            modal.style.display = 'none';
+        }
+
+        // 开始编辑玩家名称
+        function startEditingPlayerName(playerId) {
+            // 设置所有玩家为非编辑状态
+            gameState.players.forEach(player => {
+                player.isEditingName = false;
+            });
+            
+            // 设置当前玩家为编辑状态
+            const player = gameState.players.find(p => p.id === playerId);
+            if (player) {
+                player.isEditingName = true;
+                playerNamesBeingEdited.add(playerId);
+                renderPlayers();
+                
+                // 聚焦到输入框
+                setTimeout(() => {
+                    const input = document.querySelector(`input[data-player-id="${playerId}"]`);
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                }, 10);
+            }
+        }
+
+        // 更新玩家名称
+        function updatePlayerName(playerId, newName) {
+            const player = gameState.players.find(p => p.id === playerId);
+            if (player) {
+                player.name = newName.trim() || `玩家${playerId}`;
+                player.isEditingName = false;
+                playerNamesBeingEdited.delete(playerId);
+                renderPlayers();
+                saveGameData();
+            }
+        }
+
+        // 处理名称输入框按键事件
+        function handleNameInputKeydown(playerId, event) {
+            if (event.key === 'Enter') {
+                updatePlayerName(playerId, event.target.value);
+            } else if (event.key === 'Escape') {
+                const player = gameState.players.find(p => p.id === playerId);
+                if (player) {
+                    player.isEditingName = false;
+                    playerNamesBeingEdited.delete(playerId);
+                    renderPlayers();
+                }
+            }
+        }
+
+        // 选择玩家进行发言（通过按钮）
+        function selectPlayerForSpeech(playerId) {
+            gameState.selectedPlayerId = playerId;
+            renderPlayers();
+            
+            // 聚焦到发言输入框
+            document.getElementById('speechInput').focus();
+        }
+
+        // 更新选中玩家信息
+        function updateSelectedPlayerInfo() {
+            const selectedPlayerInfo = document.getElementById('selectedPlayerInfo');
+            
+            if (gameState.selectedPlayerId) {
+                const player = gameState.players.find(p => p.id === gameState.selectedPlayerId);
+                selectedPlayerInfo.innerHTML = `当前发言者: <span style="color: ${player.color}; font-weight: bold;">${player.name}</span> (${player.role}) - ${player.status === 'alive' ? '存活' : '已淘汰'}`;
+            } else {
+                selectedPlayerInfo.innerHTML = "当前未选择玩家 (点击玩家卡片下方的'选择发言'按钮)";
+            }
+        }
+
+        // 更改玩家身份
+        function changePlayerRole(playerId, newRole) {
+            if (newRole === 'custom') {
+                // 显示自定义职业模态框
+                showAddRoleModal(playerId);
+                // 重置选择框的值
+                const player = gameState.players.find(p => p.id === playerId);
+                setTimeout(() => {
+                    const select = document.querySelector(`.player-card[data-id="${playerId}"] .role-select`);
+                    if (select && player) {
+                        select.value = player.role;
+                    }
+                }, 10);
+                return;
+            }
+            
+            const player = gameState.players.find(p => p.id === playerId);
+            player.role = newRole;
+            saveGameData();
+            renderPlayers();
+        }
+
+        // 切换玩家状态
+        function togglePlayerStatus(playerId) {
+            const player = gameState.players.find(p => p.id === playerId);
+            player.status = player.status === 'alive' ? 'dead' : 'alive';
+            renderPlayers();
+            saveGameData();
+        }
+
+        // 渲染明牌身份
+        function renderOpenRoles() {
+            const openRolesList = document.getElementById('openRolesList');
+            openRolesList.innerHTML = '';
+            
+            if (gameState.openRoles.length === 0) {
+                openRolesList.innerHTML = '<div style="color: #a0a7c2; text-align: center; width: 100%; padding: 10px;">暂无明牌身份，点击"管理明牌身份"按钮设置</div>';
+                return;
+            }
+            
+            gameState.openRoles.forEach(role => {
+                // 确定角色阵营
+                let category = 'neutral';
+                if (roleCategories.goose.includes(role)) {
+                    category = 'goose';
+                } else if (roleCategories.duck.includes(role)) {
+                    category = 'duck';
+                }
+                
+                const roleTag = document.createElement('div');
+                roleTag.className = `open-role-tag ${category}`;
+                roleTag.innerHTML = `
+                    <span>${role}</span>
+                    <button class="remove-btn" onclick="removeOpenRole('${role}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                openRolesList.appendChild(roleTag);
+            });
+        }
+
+        // 显示明牌身份管理模态框
+        function showOpenRolesModal() {
+            const modal = document.getElementById('openRolesModal');
+            const selectionContainer = document.getElementById('openRoleSelection');
+            
+            // 清空选择容器
+            selectionContainer.innerHTML = '';
+            
+            // 获取所有角色（基础+自定义）
+            const allRoles = getAllRoleOptions();
+            
+            // 移除"未知"选项
+            const rolesToShow = allRoles.filter(role => role !== "未知");
+            
+            // 创建角色选项
+            rolesToShow.forEach(role => {
+                const isSelected = gameState.openRoles.includes(role);
+                
+                // 确定角色阵营
+                let category = 'neutral';
+                if (roleCategories.goose.includes(role)) {
+                    category = 'goose';
+                } else if (roleCategories.duck.includes(role)) {
+                    category = 'duck';
+                }
+                
+                const roleOption = document.createElement('div');
+                roleOption.className = `role-option ${isSelected ? 'selected' : ''}`;
+                roleOption.dataset.role = role;
+                roleOption.dataset.category = category;
+                roleOption.innerHTML = role;
+                
+                roleOption.addEventListener('click', () => {
+                    roleOption.classList.toggle('selected');
+                });
+                
+                selectionContainer.appendChild(roleOption);
+            });
+            
+            modal.style.display = 'flex';
+        }
+
+        // 保存明牌身份选择
+        function saveOpenRoles() {
+            const modal = document.getElementById('openRolesModal');
+            const selectedOptions = document.querySelectorAll('#openRoleSelection .role-option.selected');
+            
+            // 获取选中的角色
+            const selectedRoles = Array.from(selectedOptions).map(option => option.dataset.role);
+            
+            // 更新游戏状态
+            gameState.openRoles = selectedRoles;
+            
+            // 关闭模态框
+            modal.style.display = 'none';
+            
+            // 重新渲染明牌身份
+            renderOpenRoles();
+            
+            // 重新渲染玩家列表（显示明牌身份标记）
+            renderPlayers();
+            
+            saveGameData();
+            
+            showNotification(`已设置 ${selectedRoles.length} 个明牌身份`, 'success');
+        }
+
+        // 取消明牌身份选择
+        function cancelOpenRoles() {
+            const modal = document.getElementById('openRolesModal');
+            modal.style.display = 'none';
+        }
+
+        // 移除单个明牌身份
+        function removeOpenRole(role) {
+            gameState.openRoles = gameState.openRoles.filter(r => r !== role);
+            renderOpenRoles();
+            renderPlayers();
+            saveGameData();
+            showNotification(`已移除明牌身份: ${role}`, 'info');
+        }
+
+        // 处理发言输入框输入事件
+        function handleSpeechInput() {
+            const input = document.getElementById('speechInput');
+            const text = input.value;
+            const cursorPos = input.selectionStart;
+            
+            // 清除之前的超时
+            if (autocompleteTimeout) {
+                clearTimeout(autocompleteTimeout);
+            }
+            
+            // 延迟执行自动补全，避免频繁触发
+            autocompleteTimeout = setTimeout(() => {
+                showAutocompleteSuggestions(text, cursorPos);
+            }, 100);
+        }
+
+        // 处理发言输入框按键事件
+        function handleSpeechInputKeydown(event) {
+            const suggestions = document.getElementById('autocompleteSuggestions');
+            const suggestionItems = suggestions.querySelectorAll('.suggestion-item');
+            const activeSuggestion = suggestions.querySelector('.suggestion-item.active');
+            
+            // 下箭头键
+            if (event.key === 'ArrowDown' && suggestionItems.length > 0) {
+                event.preventDefault();
+                let nextIndex = 0;
+                
+                if (activeSuggestion) {
+                    const currentIndex = Array.from(suggestionItems).indexOf(activeSuggestion);
+                    nextIndex = (currentIndex + 1) % suggestionItems.length;
+                    activeSuggestion.classList.remove('active');
+                }
+                
+                suggestionItems[nextIndex].classList.add('active');
+                return;
+            }
+            
+            // 上箭头键
+            if (event.key === 'ArrowUp' && suggestionItems.length > 0) {
+                event.preventDefault();
+                let prevIndex = suggestionItems.length - 1;
+                
+                if (activeSuggestion) {
+                    const currentIndex = Array.from(suggestionItems).indexOf(activeSuggestion);
+                    prevIndex = (currentIndex - 1 + suggestionItems.length) % suggestionItems.length;
+                    activeSuggestion.classList.remove('active');
+                }
+                
+                suggestionItems[prevIndex].classList.add('active');
+                return;
+            }
+            
+            // 回车键选择建议
+            if (event.key === 'Enter' && activeSuggestion) {
+                event.preventDefault();
+                selectAutocompleteSuggestion(activeSuggestion);
+                return;
+            }
+            
+            // ESC键隐藏建议
+            if (event.key === 'Escape') {
+                suggestions.style.display = 'none';
+                return;
+            }
+        }
+
+        // 显示自动补全建议
+        function showAutocompleteSuggestions(text, cursorPos) {
+            const suggestions = document.getElementById('autocompleteSuggestions');
+            
+            // 如果文本为空或没有选择玩家，隐藏建议
+            if (!text.trim() || !gameState.selectedPlayerId) {
+                suggestions.style.display = 'none';
+                return;
+            }
+            
+            // 获取光标前的文本
+            const textBeforeCursor = text.substring(0, cursorPos);
+            
+            // 查找可能的关键词（玩家名称）
+            const matches = [];
+            const searchTerm = textBeforeCursor.toLowerCase();
+            
+            // 获取所有玩家名称
+            gameState.players.forEach(player => {
+                // 排除当前发言玩家自己
+                if (player.id === gameState.selectedPlayerId) return;
+                
+                const playerName = player.name.toLowerCase();
+                const playerNamePinyin = convertToPinyin(player.name).toLowerCase();
+                
+                // 检查是否匹配玩家名称（中文）
+                if (playerName.includes(searchTerm) && searchTerm.length > 0) {
+                    matches.push({
+                        player: player,
+                        matchType: 'name',
+                        matchText: player.name,
+                        position: textBeforeCursor.lastIndexOf(player.name)
+                    });
+                }
+                // 检查是否匹配拼音
+                else if (playerNamePinyin.includes(searchTerm) && searchTerm.length > 0) {
+                    matches.push({
+                        player: player,
+                        matchType: 'pinyin',
+                        matchText: player.name,
+                        position: textBeforeCursor.lastIndexOf(searchTerm)
+                    });
+                }
+                // 检查是否匹配首字母
+                else if (getFirstLetters(player.name).toLowerCase().includes(searchTerm) && searchTerm.length > 0) {
+                    matches.push({
+                        player: player,
+                        matchType: 'initial',
+                        matchText: player.name,
+                        position: textBeforeCursor.lastIndexOf(searchTerm)
+                    });
+                }
+            });
+            
+            // 如果没有匹配项，隐藏建议
+            if (matches.length === 0) {
+                suggestions.style.display = 'none';
+                return;
+            }
+            
+            // 显示建议
+            suggestions.innerHTML = '';
+            
+            // 按匹配类型排序：名称匹配 > 拼音匹配 > 首字母匹配
+            matches.sort((a, b) => {
+                const typeOrder = { 'name': 0, 'pinyin': 1, 'initial': 2 };
+                return typeOrder[a.matchType] - typeOrder[b.matchType];
+            });
+            
+            // 最多显示5个建议
+            const displayMatches = matches.slice(0, 5);
+            
+            displayMatches.forEach((match, index) => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.className = 'suggestion-item';
+                if (index === 0) {
+                    suggestionItem.classList.add('active');
+                }
+                
+                let hintText = '';
+                switch (match.matchType) {
+                    case 'name':
+                        hintText = '名称匹配';
+                        break;
+                    case 'pinyin':
+                        hintText = '拼音匹配';
+                        break;
+                    case 'initial':
+                        hintText = '首字母匹配';
+                        break;
+                }
+                
+                suggestionItem.innerHTML = `
+                    <span class="suggestion-player-name">${match.player.name}</span>
+                    <span class="suggestion-hint">(${hintText})</span>
+                `;
+                
+                suggestionItem.addEventListener('click', () => {
+                    selectAutocompleteSuggestion(suggestionItem, match.player.name);
+                });
+                
+                suggestions.appendChild(suggestionItem);
+            });
+            
+            suggestions.style.display = 'block';
+        }
+
+        // 选择自动补全建议
+        function selectAutocompleteSuggestion(suggestionItem, playerName = null) {
+            const input = document.getElementById('speechInput');
+            const text = input.value;
+            const cursorPos = input.selectionStart;
+            
+            // 如果没有传递玩家名称，从元素中获取
+            if (!playerName) {
+                const playerNameSpan = suggestionItem.querySelector('.suggestion-player-name');
+                playerName = playerNameSpan ? playerNameSpan.textContent : '';
+            }
+            
+            if (!playerName) return;
+            
+            // 在光标位置插入玩家名称
+            const textBeforeCursor = text.substring(0, cursorPos);
+            const textAfterCursor = text.substring(cursorPos);
+            
+            // 简单的插入逻辑：在光标处插入玩家名称
+            input.value = textBeforeCursor + playerName + textAfterCursor;
+            
+            // 移动光标到插入位置之后
+            const newCursorPos = cursorPos + playerName.length;
+            input.setSelectionRange(newCursorPos, newCursorPos);
+            
+            // 隐藏建议
+            document.getElementById('autocompleteSuggestions').style.display = 'none';
+            
+            // 重新聚焦输入框
+            input.focus();
+        }
+
+        // 将中文转换为拼音（简单实现）
+        function convertToPinyin(chinese) {
+            // 简单的拼音映射表（只包含常用字）
+            const pinyinMap = {
+                '包': 'bao',
+                '玩': 'wan',
+                '家': 'jia',
+                '小': 'xiao',
+                '明': 'ming',
+                '红': 'hong',
+                '蓝': 'lan',
+                '绿': 'lv',
+                '黄': 'huang',
+                '白': 'bai',
+                '黑': 'hei',
+                '紫': 'zi',
+                '橙': 'cheng',
+                '灰': 'hui',
+                '金': 'jin',
+                '银': 'yin',
+                '铜': 'tong',
+                '铁': 'tie',
+                '钢': 'gang',
+                '木': 'mu',
+                '水': 'shui',
+                '火': 'huo',
+                '土': 'tu',
+                '风': 'feng',
+                '雷': 'lei',
+                '电': 'dian',
+                '冰': 'bing',
+                '雪': 'xue',
+                '雨': 'yu',
+                '云': 'yun',
+                '日': 'ri',
+                '月': 'yue',
+                '星': 'xing',
+                '辰': 'chen',
+                '天': 'tian',
+                '地': 'di',
+                '人': 'ren',
+                '王': 'wang',
+                '李': 'li',
+                '张': 'zhang',
+                '刘': 'liu',
+                '陈': 'chen',
+                '杨': 'yang',
+                '赵': 'zhao',
+                '黄': 'huang',
+                '周': 'zhou',
+                '吴': 'wu',
+                '徐': 'xu',
+                '孙': 'sun',
+                '胡': 'hu',
+                '朱': 'zhu',
+                '高': 'gao',
+                '林': 'lin',
+                '何': 'he',
+                '郭': 'guo',
+                '马': 'ma',
+                '罗': 'luo',
+                '梁': 'liang',
+                '宋': 'song',
+                '郑': 'zheng',
+                '谢': 'xie',
+                '韩': 'han',
+                '唐': 'tang',
+                '冯': 'feng',
+                '于': 'yu',
+                '董': 'dong',
+                '萧': 'xiao',
+                '程': 'cheng',
+                '曹': 'cao',
+                '袁': 'yuan',
+                '邓': 'deng',
+                '许': 'xu',
+                '傅': 'fu',
+                '沈': 'shen',
+                '曾': 'zeng',
+                '彭': 'peng',
+                '吕': 'lv',
+                '苏': 'su',
+                '卢': 'lu',
+                '蒋': 'jiang',
+                '蔡': 'cai',
+                '贾': 'jia',
+                '丁': 'ding',
+                '魏': 'wei',
+                '薛': 'xue',
+                '叶': 'ye',
+                '阎': 'yan',
+                '余': 'yu',
+                '潘': 'pan',
+                '杜': 'du',
+                '戴': 'dai',
+                '夏': 'xia',
+                '钟': 'zhong',
+                '汪': 'wang',
+                '田': 'tian',
+                '任': 'ren',
+                '姜': 'jiang',
+                '范': 'fan',
+                '方': 'fang',
+                '石': 'shi',
+                '姚': 'yao',
+                '谭': 'tan',
+                '廖': 'liao',
+                '邹': 'zou',
+                '熊': 'xiong',
+                '金': 'jin',
+                '陆': 'lu',
+                '郝': 'hao',
+                '孔': 'kong',
+                '白': 'bai',
+                '崔': 'cui',
+                '康': 'kang',
+                '毛': 'mao',
+                '邱': 'qiu',
+                '秦': 'qin',
+                '江': 'jiang',
+                '史': 'shi',
+                '顾': 'gu',
+                '侯': 'hou',
+                '邵': 'shao',
+                '孟': 'meng',
+                '龙': 'long',
+                '万': 'wan',
+                '段': 'duan',
+                '雷': 'lei',
+                '钱': 'qian',
+                '汤': 'tang',
+                '尹': 'yin',
+                '黎': 'li',
+                '易': 'yi',
+                '常': 'chang',
+                '武': 'wu',
+                '乔': 'qiao',
+                '贺': 'he',
+                '赖': 'lai',
+                '龚': 'gong',
+                '文': 'wen'
+            };
+            
+            let pinyin = '';
+            for (let i = 0; i < chinese.length; i++) {
+                const char = chinese[i];
+                pinyin += pinyinMap[char] || char;
+            }
+            
+            return pinyin;
+        }
+
+        // 获取中文的首字母（简单实现）
+        function getFirstLetters(chinese) {
+            // 简单的首字母映射表
+            const initialMap = {
+                '包': 'b',
+                '玩': 'w',
+                '家': 'j',
+                '小': 'x',
+                '明': 'm',
+                '红': 'h',
+                '蓝': 'l',
+                '绿': 'l',
+                '黄': 'h',
+                '白': 'b',
+                '黑': 'h',
+                '紫': 'z',
+                '橙': 'c',
+                '灰': 'h',
+                '金': 'j',
+                '银': 'y',
+                '铜': 't',
+                '铁': 't',
+                '钢': 'g',
+                '木': 'm',
+                '水': 's',
+                '火': 'h',
+                '土': 't',
+                '风': 'f',
+                '雷': 'l',
+                '电': 'd',
+                '冰': 'b',
+                '雪': 'x',
+                '雨': 'y',
+                '云': 'y',
+                '日': 'r',
+                '月': 'y',
+                '星': 'x',
+                '辰': 'c',
+                '天': 't',
+                '地': 'd',
+                '人': 'r'
+            };
+            
+            let initials = '';
+            for (let i = 0; i < chinese.length; i++) {
+                const char = chinese[i];
+                initials += initialMap[char] || char.charAt(0);
+            }
+            
+            return initials;
+        }
+
+        // 开始会议
+        function startMeeting() {
+            gameState.isMeetingActive = true;
+            gameState.currentMeeting++;
+            updateMeetingStatus();
+            
+            // 显示通知
+            showNotification(`第 ${gameState.currentMeeting} 次会议开始！请记录玩家发言。`, 'info');
+        }
+
+        // 结束会议
+        function endMeeting() {
+            if (!gameState.isMeetingActive) return;
+            
+            gameState.isMeetingActive = false;
+            updateMeetingStatus();
+            
+            // 自动生成总结
+            generateSummary();
+            
+            // 显示通知
+            showNotification(`第 ${gameState.currentMeeting} 次会议结束！`, 'info');
+        }
+
+        // 更新会议状态显示
+        function updateMeetingStatus() {
+            const meetingStatus = document.getElementById('currentMeeting');
+            meetingStatus.textContent = `第 ${gameState.currentMeeting} 次会议${gameState.isMeetingActive ? ' (进行中)' : ''}`;
+        }
+
+        // 新游戏
+        function newGame() {
+            if (confirm("确定开始新游戏吗？当前会议记录和玩家状态将被重置，但玩家名称和自定义职业会保留。")) {
+                gameState.currentMeeting = 1;
+                gameState.isMeetingActive = false;
+                gameState.speeches = [];
+                gameState.selectedPlayerId = null;
+                gameState.contradictions = [];
+                playerNamesBeingEdited.clear();
+                
+                // 重置所有玩家状态为存活，但保留名称和角色
+                gameState.players.forEach(player => {
+                    player.status = "alive";
+                });
+                
+                renderPlayers();
+                renderSpeeches();
+                updateMeetingStatus();
+                clearAnalysis();
+                saveGameData();
+                
+                showNotification("新游戏已开始！所有玩家状态已重置为存活。", 'success');
+            }
+        }
+
+        // 导出数据
+        function exportData() {
+            const dataStr = JSON.stringify(gameState, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `鹅鸭杀记录_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showNotification("数据已导出！", 'success');
+        }
+
+        // 记录发言
+        function recordSpeech() {
+            if (!gameState.selectedPlayerId) {
+                showNotification("请先选择玩家！", 'warning');
+                return;
+            }
+            
+            const speechText = document.getElementById('speechInput').value.trim();
+            if (!speechText) {
+                showNotification("请输入发言内容！", 'warning');
+                return;
+            }
+            
+            const player = gameState.players.find(p => p.id === gameState.selectedPlayerId);
+            
+            // 创建发言记录
+            const speech = {
+                id: Date.now(),
+                playerId: player.id,
+                playerName: player.name,
+                meeting: gameState.currentMeeting,
+                content: speechText,
+                timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                tags: [],
+                suspicious: false
+            };
+            
+            // 自动分析发言内容并提取标签
+            analyzeSpeechContent(speech);
+            
+            gameState.speeches.push(speech);
+            renderSpeeches();
+            document.getElementById('speechInput').value = '';
+            saveGameData();
+            
+            showNotification(`已记录${player.name}的发言`, 'success');
+        }
+
+        // 分析发言内容
+        function analyzeSpeechContent(speech) {
+            const content = speech.content.toLowerCase();
+            
+            // 检测身份声明
+            if (content.includes('我是') || content.includes('我的身份是') || content.includes('我是鹅') || content.includes('我是鸭子')) {
+                speech.tags.push({ type: 'role-claim', text: '身份声明' });
+            }
+            
+            // 检测地点提及
+            const locations = ['大堂', '餐厅', '厨房', '引擎室', '指挥室', '医疗室', '实验室', '保安室', '储藏室'];
+            locations.forEach(location => {
+                if (content.includes(location.toLowerCase())) {
+                    speech.tags.push({ type: 'location', text: `地点:${location}` });
+                }
+            });
+            
+            // 检测怀疑对象
+            gameState.players.forEach(player => {
+                if (content.includes(player.name.toLowerCase()) && (content.includes('怀疑') || content.includes('可能是') || content.includes('看到'))) {
+                    speech.tags.push({ type: 'suspect', text: `怀疑:${player.name}` });
+                }
+            });
+            
+            // 检测不在场证明
+            if (content.includes('和') && content.includes('在一起') || content.includes('看到我在')) {
+                speech.tags.push({ type: 'alibi', text: '不在场证明' });
+            }
+            
+            // 检测投票意向
+            if (content.includes('投') && content.includes('票')) {
+                speech.tags.push({ type: 'vote', text: '投票意向' });
+            }
+        }
+
+        // 智能分析发言
+        function analyzeSpeech() {
+            const speechText = document.getElementById('speechInput').value.trim();
+            if (!speechText) {
+                showNotification("请先输入发言内容！", 'warning');
+                return;
+            }
+            
+            // 简单的关键词分析
+            const analysis = {
+                keyPoints: [],
+                suspiciousFactors: []
+            };
+            
+            const text = speechText.toLowerCase();
+            
+            // 提取关键信息
+            if (text.includes('我是') || text.includes('我的身份是')) {
+                analysis.keyPoints.push('身份声明');
+            }
+            
+            if (text.includes('看到') || text.includes('目击')) {
+                analysis.keyPoints.push('目击信息');
+            }
+            
+            if (text.includes('怀疑') || text.includes('可能是')) {
+                analysis.keyPoints.push('怀疑对象');
+            }
+            
+            if (text.includes('在一起') || text.includes('和') && text.includes('在')) {
+                analysis.keyPoints.push('不在场证明');
+            }
+            
+            // 检测可疑因素
+            if (text.includes('不确定') || text.includes('可能') || text.includes('好像')) {
+                analysis.suspiciousFactors.push('表述模糊');
+            }
+            
+            if ((text.match(/我/g) || []).length > 5) {
+                analysis.suspiciousFactors.push('过度使用"我"');
+            }
+            
+            if (text.includes('肯定') && text.includes('不是')) {
+                analysis.suspiciousFactors.push('过度辩解');
+            }
+            
+            // 显示分析结果
+            let resultHTML = `<h4>分析结果：</h4>`;
+            
+            if (analysis.keyPoints.length > 0) {
+                resultHTML += `<p><strong>关键信息：</strong> ${analysis.keyPoints.join('、')}</p>`;
+            }
+            
+            if (analysis.suspiciousFactors.length > 0) {
+                resultHTML += `<p><strong style="color:#ff5e62">可疑因素：</strong> ${analysis.suspiciousFactors.join('、')}</p>`;
+            } else {
+                resultHTML += `<p><strong style="color:#38b000">无明显可疑因素</strong></p>`;
+            }
+            
+            // 提取提到的玩家
+            const mentionedPlayers = [];
+            gameState.players.forEach(player => {
+                if (text.includes(player.name.toLowerCase())) {
+                    mentionedPlayers.push(player.name);
+                }
+            });
+            
+            if (mentionedPlayers.length > 0) {
+                resultHTML += `<p><strong>提到的玩家：</strong> ${mentionedPlayers.join('、')}</p>`;
+            }
+            
+            showNotificationWithDetails("发言分析完成", resultHTML);
+        }
+
+        // 标记可疑
+        function markSuspicious() {
+            if (gameState.speeches.length === 0) {
+                showNotification("暂无发言记录！", 'warning');
+                return;
+            }
+            
+            // 找到最新的发言
+            const latestSpeech = gameState.speeches[gameState.speeches.length - 1];
+            latestSpeech.suspicious = !latestSpeech.suspicious;
+            
+            renderSpeeches();
+            saveGameData();
+            
+            showNotification(`${latestSpeech.suspicious ? '已标记' : '已取消'}${latestSpeech.playerName}的发言为可疑`, 'info');
+        }
+
+        // 渲染发言记录
+        function renderSpeeches() {
+            const speechLog = document.getElementById('speechLog');
+            speechLog.innerHTML = '';
+            
+            if (gameState.speeches.length === 0) {
+                speechLog.innerHTML = '<p style="text-align: center; color: #a0a7c2; padding: 40px 0;">暂无发言记录</p>';
+                return;
+            }
+            
+            // 按会议分组显示发言
+            const meetings = {};
+            gameState.speeches.forEach(speech => {
+                if (!meetings[speech.meeting]) {
+                    meetings[speech.meeting] = [];
+                }
+                meetings[speech.meeting].push(speech);
+            });
+            
+            // 按会议顺序显示（最新的在前面）
+            const meetingNumbers = Object.keys(meetings).sort((a, b) => b - a);
+            
+            meetingNumbers.forEach(meetingNum => {
+                const meetingHeader = document.createElement('div');
+                meetingHeader.className = 'panel-title';
+                meetingHeader.style.marginTop = '20px';
+                meetingHeader.style.marginBottom = '10px';
+                meetingHeader.innerHTML = `<i class="fas fa-bullhorn"></i> 第 ${meetingNum} 次会议发言`;
+                speechLog.appendChild(meetingHeader);
+                
+                const meetingSpeeches = meetings[meetingNum];
+                meetingSpeeches.forEach(speech => {
+                    const speechItem = document.createElement('div');
+                    speechItem.className = `speech-item ${speech.suspicious ? 'suspicious' : ''}`;
+                    
+                    let tagsHTML = '';
+                    if (speech.tags && speech.tags.length > 0) {
+                        tagsHTML = speech.tags.map(tag => 
+                            `<span class="tag ${tag.type}">${tag.text}</span>`
+                        ).join('');
+                    }
+                    
+                    speechItem.innerHTML = `
+                        <div class="speech-header">
+                            <div class="speaker">${speech.playerName}</div>
+                            <div class="meeting-number">${speech.timestamp}</div>
+                        </div>
+                        <div class="speech-content">${speech.content}</div>
+                        ${tagsHTML ? `<div class="speech-tags">${tagsHTML}</div>` : ''}
+                    `;
+                    
+                    speechLog.appendChild(speechItem);
+                });
+            });
+            
+            // 滚动到底部
+            speechLog.scrollTop = 0;
+        }
+
+        // 生成会议总结
+        function generateSummary() {
+            if (gameState.speeches.length === 0) {
+                showNotification("暂无发言记录！", 'warning');
+                return;
+            }
+            
+            // 获取当前会议的发言
+            const currentMeetingSpeeches = gameState.speeches.filter(s => s.meeting === gameState.currentMeeting);
+            
+            if (currentMeetingSpeeches.length === 0) {
+                document.getElementById('summaryContent').innerHTML = "当前会议暂无发言记录。";
+                return;
+            }
+            
+            // 分析发言
+            const roleClaims = [];
+            const suspicions = [];
+            const alibis = [];
+            const mentionedPlayers = {};
+            
+            currentMeetingSpeeches.forEach(speech => {
+                // 提取身份声明
+                if (speech.content.includes('我是') || speech.content.includes('我的身份是')) {
+                    roleClaims.push(`${speech.playerName}: "${speech.content.substring(0, 50)}..."`);
+                }
+                
+                // 提取怀疑对象
+                gameState.players.forEach(player => {
+                    if (speech.content.includes(player.name) && (speech.content.includes('怀疑') || speech.content.includes('可能是'))) {
+                        suspicions.push(`${speech.playerName} 怀疑 ${player.name}`);
+                        
+                        // 统计被怀疑次数
+                        if (!mentionedPlayers[player.name]) {
+                            mentionedPlayers[player.name] = { suspicions: 0, mentions: 0 };
+                        }
+                        mentionedPlayers[player.name].suspicious++;
+                    }
+                    
+                    // 统计被提及次数
+                    if (speech.content.includes(player.name) && player.name !== speech.playerName) {
+                        if (!mentionedPlayers[player.name]) {
+                            mentionedPlayers[player.name] = { suspicions: 0, mentions: 0 };
+                        }
+                        mentionedPlayers[player.name].mentions++;
+                    }
+                });
+                
+                // 提取不在场证明
+                if (speech.content.includes('在一起') || speech.content.includes('和') && speech.content.includes('在')) {
+                    alibis.push(`${speech.playerName}: "${speech.content.substring(0, 60)}..."`);
+                }
+            });
+            
+            // 生成总结HTML
+            let summaryHTML = `<p><strong>第 ${gameState.currentMeeting} 次会议总结：</strong></p>`;
+            summaryHTML += `<p>本次会议共有 <span class="highlight">${currentMeetingSpeeches.length}</span> 条发言记录。</p>`;
+            
+            if (roleClaims.length > 0) {
+                summaryHTML += `<p><strong>身份声明：</strong></p><ul>`;
+                roleClaims.forEach(claim => {
+                    summaryHTML += `<li>${claim}</li>`;
+                });
+                summaryHTML += `</ul>`;
+            }
+            
+            if (suspicions.length > 0) {
+                summaryHTML += `<p><strong>怀疑关系：</strong></p><ul>`;
+                suspicions.forEach(suspicion => {
+                    summaryHTML += `<li>${suspicion}</li>`;
+                });
+                summaryHTML += `</ul>`;
+            }
+            
+            if (alibis.length > 0) {
+                summaryHTML += `<p><strong>不在场证明：</strong></p><ul>`;
+                alibis.forEach(alibi => {
+                    summaryHTML += `<li>${alibi}</li>`;
+                });
+                summaryHTML += `</ul>`;
+            }
+            
+            // 找出最可疑的玩家
+            let mostSuspicious = null;
+            let maxSuspicions = 0;
+            
+            Object.keys(mentionedPlayers).forEach(playerName => {
+                if (mentionedPlayers[playerName].suspicious > maxSuspicions) {
+                    maxSuspicions = mentionedPlayers[playerName].suspicious;
+                    mostSuspicious = playerName;
+                }
+            });
+            
+            if (mostSuspicious) {
+                summaryHTML += `<p><strong style="color:#ff5e62">重点关注：</strong>玩家 <span class="highlight">${mostSuspicious}</span> 被 ${maxSuspicions} 次怀疑，是当前会议中最可疑的玩家。</p>`;
+            }
+            
+            // 检查是否有玩家沉默
+            const speakingPlayers = [...new Set(currentMeetingSpeeches.map(s => s.playerName))];
+            const silentPlayers = gameState.players
+                .filter(p => p.status === 'alive' && !speakingPlayers.includes(p.name))
+                .map(p => p.name);
+                
+            if (silentPlayers.length > 0) {
+                summaryHTML += `<p><strong style="color:#ff9e00">沉默玩家：</strong> ${silentPlayers.join('、')} 在本轮会议中没有发言。</p>`;
+            }
+            
+            document.getElementById('summaryContent').innerHTML = summaryHTML;
+            showNotification("会议总结已生成！", 'success');
+        }
+
+        // 检测矛盾发言
+        function findContradictions() {
+            gameState.contradictions = [];
+            
+            // 按玩家分组发言
+            const playerSpeeches = {};
+            gameState.speeches.forEach(speech => {
+                if (!playerSpeeches[speech.playerName]) {
+                    playerSpeeches[speech.playerName] = [];
+                }
+                playerSpeeches[speech.playerName].push(speech);
+            });
+            
+            // 检查每个玩家的发言是否存在矛盾
+            Object.keys(playerSpeeches).forEach(playerName => {
+                const speeches = playerSpeeches[playerName];
+                if (speeches.length < 2) return;
+                
+                // 检查身份声明是否一致
+                const roleClaims = speeches.filter(s => 
+                    s.content.includes('我是') || s.content.includes('我的身份是')
+                );
+                
+                if (roleClaims.length >= 2) {
+                    // 简单比较：检查是否提到不同的身份
+                    const claimsText = roleClaims.map(s => s.content);
+                    const uniqueClaims = [...new Set(claimsText)];
+                    
+                    if (uniqueClaims.length > 1) {
+                        gameState.contradictions.push({
+                            player: playerName,
+                            type: '身份声明矛盾',
+                            details: `在不同会议中声称了不同的身份`,
+                            statements: roleClaims.map(s => ({
+                                meeting: s.meeting,
+                                content: s.content.substring(0, 80) + (s.content.length > 80 ? '...' : '')
+                            }))
+                        });
+                    }
+                }
+                
+                // 检查位置信息是否矛盾
+                const locationMentions = speeches.filter(s => 
+                    s.content.includes('在') && (s.content.includes('看到') || s.content.includes('我在'))
+                );
+                
+                if (locationMentions.length >= 2) {
+                    // 简单逻辑：如果同一玩家在同一时间（相同会议）声称在不同地点，则矛盾
+                    const meetingsWithLocations = {};
+                    locationMentions.forEach(speech => {
+                        if (!meetingsWithLocations[speech.meeting]) {
+                            meetingsWithLocations[speech.meeting] = [];
+                        }
+                        meetingsWithLocations[speech.meeting].push(speech);
+                    });
+                    
+                    // 检查同一会议中是否有矛盾位置信息
+                    Object.keys(meetingsWithLocations).forEach(meeting => {
+                        const meetingSpeeches = meetingsWithLocations[meeting];
+                        if (meetingSpeeches.length >= 2) {
+                            // 提取位置关键词
+                            const locations = ['大堂', '餐厅', '厨房', '引擎室', '指挥室', '医疗室', '实验室', '保安室', '储藏室'];
+                            const mentionedLocations = [];
+                            
+                            meetingSpeeches.forEach(speech => {
+                                locations.forEach(location => {
+                                    if (speech.content.includes(location)) {
+                                        mentionedLocations.push(location);
+                                    }
+                                });
+                            });
+                            
+                            // 如果有多个不同位置，可能存在矛盾
+                            const uniqueLocations = [...new Set(mentionedLocations)];
+                            if (uniqueLocations.length > 1) {
+                                gameState.contradictions.push({
+                                    player: playerName,
+                                    type: '位置信息矛盾',
+                                    details: `在第${meeting}次会议中提到了多个不同位置`,
+                                    statements: meetingSpeeches.map(s => ({
+                                        meeting: s.meeting,
+                                        content: s.content.substring(0, 80) + (s.content.length > 80 ? '...' : '')
+                                    }))
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+            
+            renderContradictions();
+            saveGameData();
+            
+            if (gameState.contradictions.length > 0) {
+                showNotification(`发现 ${gameState.contradictions.length} 处矛盾发言！`, 'warning');
+            } else {
+                showNotification("未发现明显的矛盾发言。", 'info');
+            }
+        }
+
+        // 渲染矛盾点
+        function renderContradictions() {
+            const contradictionsList = document.getElementById('contradictionsList');
+            
+            if (gameState.contradictions.length === 0) {
+                contradictionsList.innerHTML = '<p style="text-align: center; color: #a0a7c2;">未发现矛盾发言</p>';
+                return;
+            }
+            
+            contradictionsList.innerHTML = '<h3 class="panel-title"><i class="fas fa-exclamation-circle"></i> 发现的矛盾点</h3>';
+            
+            gameState.contradictions.forEach((contradiction, index) => {
+                const item = document.createElement('div');
+                item.className = 'contradiction-item';
+                
+                let statementsHTML = '';
+                contradiction.statements.forEach(statement => {
+                    statementsHTML += `
+                        <div class="contradiction-statement">
+                            <div>${statement.content}</div>
+                            <div class="meeting-indicator">第 ${statement.meeting} 次会议</div>
+                        </div>
+                    `;
+                });
+                
+                item.innerHTML = `
+                    <div class="contradiction-player">
+                        <i class="fas fa-user"></i> ${contradiction.player} - ${contradiction.type}
+                    </div>
+                    <p>${contradiction.details}</p>
+                    <div class="contradiction-details">
+                        ${statementsHTML}
+                    </div>
+                `;
+                
+                contradictionsList.appendChild(item);
+            });
+        }
+
+        // 投票建议
+        function suggestVote() {
+            if (gameState.speeches.length === 0) {
+                showNotification("暂无发言记录！", 'warning');
+                return;
+            }
+            
+            // 简单算法：找出被怀疑次数最多的存活玩家
+            const playerSuspicionCount = {};
+            gameState.players.forEach(player => {
+                if (player.status === 'alive') {
+                    playerSuspicionCount[player.name] = 0;
+                }
+            });
+            
+            // 统计每个玩家被怀疑的次数
+            gameState.speeches.forEach(speech => {
+                gameState.players.forEach(player => {
+                    if (speech.content.includes(player.name) && 
+                        (speech.content.includes('怀疑') || speech.content.includes('投') || speech.content.includes('票'))) {
+                        if (playerSuspicionCount[player.name] !== undefined) {
+                            playerSuspicionCount[player.name]++;
+                        }
+                    }
+                });
+            });
+            
+            // 找出被怀疑最多的玩家
+            let mostSuspectedPlayer = null;
+            let maxSuspicion = 0;
+            
+            Object.keys(playerSuspicionCount).forEach(playerName => {
+                if (playerSuspicionCount[playerName] > maxSuspicion) {
+                    maxSuspicion = playerSuspicionCount[playerName];
+                    mostSuspectedPlayer = playerName;
+                }
+            });
+            
+            // 生成建议
+            let suggestionHTML = `<h4>投票建议：</h4>`;
+            
+            if (mostSuspectedPlayer && maxSuspicion > 0) {
+                suggestionHTML += `<p>根据发言记录，玩家 <span class="highlight">${mostSuspectedPlayer}</span> 被提及怀疑 ${maxSuspicion} 次，建议优先投票。</p>`;
+                
+                // 列出怀疑该玩家的发言
+                const suspicionSpeeches = gameState.speeches.filter(speech => 
+                    speech.content.includes(mostSuspectedPlayer) && 
+                    (speech.content.includes('怀疑') || speech.content.includes('投') || speech.content.includes('票'))
+                ).slice(0, 3); // 只显示最新的3条
+                
+                if (suspicionSpeeches.length > 0) {
+                    suggestionHTML += `<p><strong>相关发言：</strong></p><ul>`;
+                    suspicionSpeeches.forEach(speech => {
+                        suggestionHTML += `<li>${speech.playerName}: "${speech.content.substring(0, 60)}..."</li>`;
+                    });
+                    suggestionHTML += `</ul>`;
+                }
+            } else {
+                suggestionHTML += `<p>暂无明确的投票目标。建议根据本轮会议的发言和可疑行为决定。</p>`;
+            }
+            
+            // 添加一般性建议
+            suggestionHTML += `<p><strong>投票策略建议：</strong></p>`;
+            suggestionHTML += `<ul>
+                <li>优先投票给发言自相矛盾的玩家</li>
+                <li>关注没有提供有效信息的沉默玩家</li>
+                <li>注意过度辩解或转移话题的玩家</li>
+                <li>考虑角色技能和游戏进程</li>
+            </ul>`;
+            
+            showNotificationWithDetails("投票建议生成", suggestionHTML);
+        }
+
+        // 清空分析区域
+        function clearAnalysis() {
+            document.getElementById('summaryContent').innerHTML = "点击'生成会议总结'按钮，系统将分析所有发言并生成总结报告。";
+            document.getElementById('contradictionsList').innerHTML = '';
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            // 创建一个临时通知元素
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background-color: ${type === 'success' ? '#2a5c3d' : type === 'warning' ? '#5c2a2a' : '#2a3c5e'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                z-index: 1000;
+                max-width: 300px;
+                animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+            `;
+            
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i> ${message}`;
+            
+            document.body.appendChild(notification);
+            
+            // 3秒后移除通知
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        }
+
+        // 显示带详情的通知
+        function showNotificationWithDetails(title, details) {
+            // 创建一个模态框
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                z-index: 2000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background-color: #16213e; padding: 25px; border-radius: 15px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid #2a3c5e;">
+                    <h3 style="color: #4cc9f0; margin-bottom: 15px;">${title}</h3>
+                    <div>${details}</div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button id="closeDetailsModalBtn" style="padding: 8px 20px; background-color: #4361ee; color: white; border: none; border-radius: 6px; cursor: pointer;">关闭</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // 关闭模态框
+            document.getElementById('closeDetailsModalBtn').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            
+            // 点击背景关闭
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+        }
+
+        // 模拟初始数据
+        function simulateInitialData() {
+            // 添加一些模拟发言记录
+            const mockSpeeches = [
+                {
+                    id: 1,
+                    playerId: 1,
+                    playerName: "玩家1",
+                    meeting: 1,
+                    content: "我是鹅，刚才在餐厅做任务，看到玩家3从厨房出来。",
+                    timestamp: "10:05",
+                    tags: [
+                        { type: 'role-claim', text: '身份声明' },
+                        { type: 'location', text: '地点:餐厅' },
+                        { type: 'location', text: '地点:厨房' },
+                        { type: 'suspect', text: '怀疑:玩家3' }
+                    ],
+                    suspicious: false
+                },
+                {
+                    id: 2,
+                    playerId: 3,
+                    playerName: "玩家3",
+                    meeting: 1,
+                    content: "我也是鹅，我刚才在厨房和玩家5一起做任务，玩家1可能看错了。",
+                    timestamp: "10:07",
+                    tags: [
+                        { type: 'role-claim', text: '身份声明' },
+                        { type: 'location', text: '地点:厨房' },
+                        { type: 'alibi', text: '不在场证明' }
+                    ],
+                    suspicious: false
+                },
+                {
+                    id: 3,
+                    playerId: 5,
+                    playerName: "玩家5",
+                    meeting: 1,
+                    content: "我可以证明玩家3说的是真的，我们确实在一起做任务。我怀疑玩家7，他刚才行为可疑。",
+                    timestamp: "10:09",
+                    tags: [
+                        { type: 'alibi', text: '不在场证明' },
+                        { type: 'suspect', text: '怀疑:玩家7' }
+                    ],
+                    suspicious: false
+                }
+            ];
+            
+            gameState.speeches = mockSpeeches;
+            renderSpeeches();
+            saveGameData();
+        }
+
+        // 添加CSS动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
