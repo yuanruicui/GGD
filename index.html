@@ -22,7 +22,7 @@
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -120,9 +120,10 @@
             transition: all 0.3s ease;
         }
         
+        /* 修改主内容布局，左侧更宽，右侧更窄 */
         .main-content {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 3fr 2fr;
             gap: 25px;
             margin-bottom: 30px;
         }
@@ -148,27 +149,34 @@
             transition: all 0.3s ease;
         }
         
+        /* 优化玩家容器布局 */
         .players-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
         
-        @media (max-width: 1200px) {
+        @media (max-width: 1400px) {
             .players-container {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
         
-        @media (max-width: 900px) {
+        @media (max-width: 1100px) {
             .players-container {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
         
-        @media (max-width: 600px) {
+        @media (max-width: 900px) {
             .players-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
                 grid-template-columns: 1fr;
             }
         }
@@ -207,11 +215,22 @@
             background-color: #2a1a2e;
         }
         
+        /* 优化玩家名称显示 - 单行显示 */
         .player-name-container {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .player-number {
+            font-weight: bold;
+            color: #ff9e00;
+            font-size: 1.1rem;
+            min-width: 30px;
         }
         
         .player-name {
@@ -219,6 +238,9 @@
             font-size: 1.1rem;
             color: #e6e6e6;
             flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         .player-name-input {
@@ -241,6 +263,9 @@
             font-size: 0.9rem;
             color: #a0a7c2;
             margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .role-select-container {
@@ -836,6 +861,154 @@
             align-items: center;
         }
 
+        /* 对局记录面板样式 */
+        .match-history-panel {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #1a2a42;
+            border-radius: 15px;
+            border: 1px solid #2a3c5e;
+        }
+        
+        .match-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .match-history-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .match-item {
+            background-color: #16213e;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #4361ee;
+            transition: all 0.3s ease;
+        }
+        
+        .match-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .match-item.win {
+            border-left-color: #38b000;
+        }
+        
+        .match-item.loss {
+            border-left-color: #ff5e62;
+        }
+        
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .match-date {
+            color: #a0a7c2;
+            font-size: 0.9rem;
+        }
+        
+        .match-result {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        
+        .match-result.win {
+            background-color: #2a5c3d;
+            color: #7ae582;
+        }
+        
+        .match-result.loss {
+            background-color: #5c2a2a;
+            color: #ff7b7b;
+        }
+        
+        .match-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .my-role {
+            background-color: #2a3c5e;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #4cc9f0;
+        }
+        
+        .match-players {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .match-player-tag {
+            padding: 4px 10px;
+            background-color: #2a3c5e;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .match-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .delete-match-btn {
+            background-color: #5c2a2a;
+            color: #ff7b7b;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .delete-match-btn:hover {
+            background-color: #6c3a3a;
+        }
+        
+        .win-rate-display {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #16213e;
+            border-radius: 8px;
+            border: 1px solid #2a3c5e;
+        }
+        
+        .win-rate-bar {
+            height: 10px;
+            background-color: #2a3c5e;
+            border-radius: 5px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .win-rate-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #38b000, #2d9140);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -854,6 +1027,10 @@
             
             .btn {
                 width: 100%;
+            }
+            
+            .match-details {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -913,6 +1090,10 @@
         body.apple .player-card.dead {
             background-color: #f9f9f9;
             opacity: 0.7;
+        }
+        
+        body.apple .player-number {
+            color: #ff9500;
         }
         
         body.apple .player-name {
@@ -1193,6 +1374,57 @@
             background-color: #d1f7c4;
             color: #2d8500;
         }
+        
+        body.apple .match-history-panel {
+            background-color: #ffffff;
+            border-color: #e5e5ea;
+        }
+        
+        body.apple .match-item {
+            background-color: #f9f9f9;
+            border-left-color: #007aff;
+        }
+        
+        body.apple .match-item.win {
+            border-left-color: #34c759;
+        }
+        
+        body.apple .match-item.loss {
+            border-left-color: #ff3b30;
+        }
+        
+        body.apple .match-result.win {
+            background-color: #d1f7c4;
+            color: #2d8500;
+        }
+        
+        body.apple .match-result.loss {
+            background-color: #ffd1d1;
+            color: #ff3b30;
+        }
+        
+        body.apple .my-role {
+            background-color: #e5f6ff;
+            color: #007aff;
+        }
+        
+        body.apple .match-player-tag {
+            background-color: #f2f2f7;
+            color: #1c1c1e;
+        }
+        
+        body.apple .win-rate-display {
+            background-color: #f9f9f9;
+            border-color: #e5e5ea;
+        }
+        
+        body.apple .win-rate-bar {
+            background-color: #e5e5ea;
+        }
+        
+        body.apple .win-rate-fill {
+            background: linear-gradient(90deg, #34c759, #2caa4a);
+        }
     </style>
 </head>
 <body>
@@ -1221,6 +1453,9 @@
                     <button class="status-btn" id="manageCustomRolesBtn">
                         <i class="fas fa-user-cog"></i> 管理身份池
                     </button>
+                    <button class="status-btn" id="viewMatchHistoryBtn">
+                        <i class="fas fa-history"></i> 对局记录
+                    </button>
                 </div>
                 
                 <div class="player-count-control">
@@ -1234,6 +1469,9 @@
             
             <div id="meetingStatus">
                 当前状态：游戏进行中 - <span id="currentMeeting">第 1 次会议</span>
+                <span id="myRoleDisplay" style="margin-left: 20px; color: #4cc9f0; display: none;">
+                    <i class="fas fa-user"></i> 我的身份: <span id="myCurrentRole">未知</span>
+                </span>
             </div>
         </header>
         
@@ -1246,6 +1484,9 @@
                 </button>
                 <button class="btn btn-warning" id="manageExcludedRolesBtn" style="margin-left:8px;">
                     <i class="fas fa-ban"></i> 管理排除身份
+                </button>
+                <button class="btn btn-success" id="setMyRoleBtn" style="margin-left:8px;">
+                    <i class="fas fa-user-edit"></i> 设置我的身份
                 </button>
             </div>
             <div class="open-roles-list" id="openRolesList">
@@ -1329,6 +1570,9 @@
                     <button class="btn btn-primary" id="suggestVoteBtn">
                         <i class="fas fa-vote-yea"></i> 投票建议
                     </button>
+                    <button class="btn btn-danger" id="endGameBtn">
+                        <i class="fas fa-flag-checkered"></i> 结束本局
+                    </button>
                 </div>
                 
                 <div class="summary-box" id="summaryBox">
@@ -1340,6 +1584,39 @@
                 
                 <div class="contradictions-list" id="contradictionsList">
                     <!-- 矛盾点将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 对局记录面板 -->
+        <div class="match-history-panel" id="matchHistoryPanel" style="display: none;">
+            <div class="match-history-header">
+                <h2 class="panel-title"><i class="fas fa-history"></i> 对局记录</h2>
+                <button class="btn btn-primary" id="closeMatchHistoryBtn">
+                    <i class="fas fa-times"></i> 关闭
+                </button>
+            </div>
+            
+            <div class="win-rate-display">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>今日胜率统计</strong>
+                        <div id="winRateText">0胜 0负 (0%)</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div>总对局: <span id="totalMatches">0</span> 局</div>
+                        <div>胜利: <span id="totalWins">0</span> 局</div>
+                        <div>失败: <span id="totalLosses">0</span> 局</div>
+                    </div>
+                </div>
+                <div class="win-rate-bar">
+                    <div class="win-rate-fill" id="winRateFill" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="match-history-list" id="matchHistoryList">
+                <div style="text-align: center; color: #a0a7c2; padding: 40px;">
+                    暂无对局记录，点击"结束本局"按钮保存对局记录
                 </div>
             </div>
         </div>
@@ -1461,6 +1738,48 @@
         </div>
     </div>
     
+    <!-- 设置我的身份模态框 -->
+    <div class="modal" id="myRoleModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3 class="modal-title"><i class="fas fa-user-edit"></i> 设置我的身份</h3>
+            <div class="modal-message">
+                <p>选择您在本局游戏中的身份：</p>
+            </div>
+            
+            <select id="myRoleSelect" class="modal-input" style="margin-bottom: 20px;">
+                <option value="">请选择您的身份</option>
+            </select>
+            
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="saveMyRoleBtn">保存</button>
+                <button class="btn btn-danger" id="cancelMyRoleBtn">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 结束本局游戏模态框 -->
+    <div class="modal" id="endGameModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3 class="modal-title"><i class="fas fa-flag-checkered"></i> 结束本局游戏</h3>
+            <div class="modal-message">
+                <p>请选择本局游戏结果：</p>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="btn btn-success" id="recordWinBtn" style="flex: 1;">
+                        <i class="fas fa-trophy"></i> 我方胜利
+                    </button>
+                    <button class="btn btn-danger" id="recordLossBtn" style="flex: 1;">
+                        <i class="fas fa-times"></i> 我方失败
+                    </button>
+                </div>
+                <p>提示：结束本局后将保存对局记录，包含所有玩家身份和发言记录。</p>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn btn-danger" id="cancelEndGameBtn">取消</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         // ========== 全局变量 ==========
         const gameState = {
@@ -1474,7 +1793,9 @@
             openRoles: [],    // 明牌身份
             excludedRoles: [], // 本局排除身份（房主设置）
             togetherGroups: [],      // 记录玩家在一起的组合
-            meetingStartTogether: [] // 本轮会议开始时的在一起状态
+            meetingStartTogether: [], // 本轮会议开始时的在一起状态
+            myRole: null, // 我的身份
+            matchHistory: [] // 对局记录
         };
         
         const baseRoleOptions = [
@@ -1590,6 +1911,35 @@
             return events;
         }
         
+        // ========== 玩家名称管理（编号+自定义名称）==========
+        /**
+         * 获取玩家显示名称（编号+名称）
+         */
+        function getPlayerDisplayName(player) {
+            return `${player.number}号玩家 - ${player.customName}`;
+        }
+        
+        /**
+         * 获取玩家短名称（仅编号）
+         */
+        function getPlayerShortName(player) {
+            return `${player.number}号`;
+        }
+        
+        /**
+         * 从显示名称解析编号和自定义名称
+         */
+        function parseDisplayName(displayName) {
+            const match = displayName.match(/^(\d+)号玩家 - (.+)$/);
+            if (match) {
+                return {
+                    number: parseInt(match[1]),
+                    customName: match[2]
+                };
+            }
+            return null;
+        }
+        
         // ========== 在一起关系管理函数 ==========
         /**
          * 记录玩家在一起的组合
@@ -1696,7 +2046,7 @@
                         const togetherTag = document.createElement('div');
                         togetherTag.className = 'together-tag';
                         togetherTag.innerHTML = `
-                            <span>${player1.name} 和 ${player2.name}</span>
+                            <span>${player1.customName}(${player1.number}号) 和 ${player2.customName}(${player2.number}号)</span>
                             <button class="remove-btn" onclick="removeTogetherGroup(${player1.id}, ${player2.id})" title="删除">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -1723,12 +2073,12 @@
                 if (player.status === 'alive') {
                     const option1 = document.createElement('option');
                     option1.value = player.id;
-                    option1.textContent = player.name;
+                    option1.textContent = getPlayerDisplayName(player);
                     player1Select.appendChild(option1);
                     
                     const option2 = document.createElement('option');
                     option2.value = player.id;
-                    option2.textContent = player.name;
+                    option2.textContent = getPlayerDisplayName(player);
                     player2Select.appendChild(option2);
                 }
             });
@@ -1766,6 +2116,31 @@
             if (savedData) {
                 const data = JSON.parse(savedData);
                 Object.assign(gameState, data);
+                
+                // 兼容旧数据：如果玩家没有number和customName，使用旧逻辑
+                gameState.players.forEach((player, index) => {
+                    if (!player.number || !player.customName) {
+                        if (player.name && player.name.includes('号玩家 - ')) {
+                            const parsed = parseDisplayName(player.name);
+                            if (parsed) {
+                                player.number = parsed.number;
+                                player.customName = parsed.customName;
+                            } else {
+                                player.number = index + 1;
+                                player.customName = player.name || `玩家${player.number}`;
+                            }
+                        } else {
+                            player.number = index + 1;
+                            player.customName = player.name || `玩家${player.number}`;
+                        }
+                    }
+                });
+                
+                // 更新我的身份显示
+                updateMyRoleDisplay();
+                
+                // 加载对局记录
+                loadMatchHistory();
             } else {
                 updatePlayerCount();
             }
@@ -1778,7 +2153,7 @@
         function clearPlayerNames() {
             if (confirm("确定要清空所有玩家的自定义名称吗？这会将所有玩家名称重置为默认名称。")) {
                 gameState.players.forEach((player) => {
-                    player.name = `玩家${player.id}`;
+                    player.customName = `玩家${player.number}`;
                     player.isEditingName = false;
                 });
                 playerNamesBeingEdited.clear();
@@ -1800,7 +2175,8 @@
                 for (let i = 1; i <= playerCount; i++) {
                     gameState.players.push({
                         id: i,
-                        name: `玩家${i}`,
+                        number: i,
+                        customName: `玩家${i}`,
                         role: "未知",
                         status: "alive",
                         color: getRandomColor(),
@@ -1809,10 +2185,12 @@
                 }
             } else if (playerCount > gameState.players.length) {
                 const currentMaxId = Math.max(...gameState.players.map(p => p.id));
+                const currentMaxNumber = Math.max(...gameState.players.map(p => p.number));
                 for (let i = gameState.players.length + 1; i <= playerCount; i++) {
                     gameState.players.push({
                         id: currentMaxId + (i - gameState.players.length),
-                        name: `玩家${i}`,
+                        number: currentMaxNumber + (i - gameState.players.length),
+                        customName: `玩家${currentMaxNumber + (i - gameState.players.length)}`,
                         role: "未知",
                         status: "alive",
                         color: getRandomColor(),
@@ -1822,6 +2200,12 @@
             } else if (playerCount < gameState.players.length) {
                 gameState.players = gameState.players.slice(0, playerCount);
             }
+            
+            // 重新分配编号（确保连续）
+            gameState.players.forEach((player, index) => {
+                player.number = index + 1;
+            });
+            
             renderPlayers();
             saveGameData();
             showNotification(`玩家数量已更新为 ${playerCount} 人`, 'success');
@@ -1839,8 +2223,14 @@
                 playerCard.dataset.id = player.id;
                 
                 const nameDisplay = player.isEditingName ?
-                    `<input type="text" class="player-name-input" value="${player.name}" data-player-id="${player.id}" onblur="updatePlayerName(${player.id}, this.value)" onkeydown="handleNameInputKeydown(${player.id}, event)">` :
-                    `<div class="player-name" onclick="event.stopPropagation(); startEditingPlayerName(${player.id})">${player.name}</div>`;
+                    `<div class="player-name-container">
+                        <div class="player-number">${player.number}号</div>
+                        <input type="text" class="player-name-input" value="${player.customName}" data-player-id="${player.id}" onblur="updatePlayerName(${player.id}, this.value)" onkeydown="handleNameInputKeydown(${player.id}, event)" placeholder="输入玩家名称">
+                    </div>` :
+                    `<div class="player-name-container" onclick="event.stopPropagation(); startEditingPlayerName(${player.id})">
+                        <div class="player-number">${player.number}号</div>
+                        <div class="player-name">${player.customName}</div>
+                    </div>`;
                 
                 playerCard.innerHTML = `
                     ${nameDisplay}
@@ -1855,7 +2245,7 @@
                     <div class="player-status ${player.status}">${player.status === 'alive' ? '存活' : '已淘汰'}</div>
                     <div style="display: flex; gap: 5px; margin-top: 10px; flex-wrap: nowrap;">
                         <button class="btn" style="padding: 5px 10px; font-size: 0.8rem; flex-grow: 1;" onclick="event.stopPropagation(); togglePlayerStatus(${player.id})">${player.status === 'alive' ? '淘汰' : '复活'}</button>
-                        <button class="btn" style="padding: 5px 10px; font-size: 0.8rem; flex-grow: 1; background-color: #4361ee;" onclick="event.stopPropagation(); selectPlayerForSpeech(${player.id})">选择发言</button>
+                        <button class="btn" style="padding: 5px 10px; font-size: 0.8rem; flex-grow: 1; background-color: #7aa2ff; color: #ffffff;" onclick="event.stopPropagation(); selectPlayerForSpeech(${player.id})">选择发言</button>
                     </div>`;
                 playersContainer.appendChild(playerCard);
             });
@@ -1925,7 +2315,7 @@
         function updatePlayerName(playerId, newName) {
             const player = gameState.players.find(p => p.id === playerId);
             if (player) {
-                player.name = newName.trim() || `玩家${playerId}`;
+                player.customName = newName.trim() || `玩家${player.number}`;
                 player.isEditingName = false;
                 playerNamesBeingEdited.delete(playerId);
                 renderPlayers();
@@ -1956,7 +2346,7 @@
             const selectedPlayerInfo = document.getElementById('selectedPlayerInfo');
             if (gameState.selectedPlayerId) {
                 const player = gameState.players.find(p => p.id === gameState.selectedPlayerId);
-                selectedPlayerInfo.innerHTML = `当前发言者: <span style="color: ${player.color}; font-weight: bold;">${player.name}</span> (${player.role}) - ${player.status === 'alive' ? '存活' : '已淘汰'}`;
+                selectedPlayerInfo.innerHTML = `当前发言者: <span style="color: ${player.color}; font-weight: bold;">${getPlayerDisplayName(player)}</span> (${player.role}) - ${player.status === 'alive' ? '存活' : '已淘汰'}`;
             } else {
                 selectedPlayerInfo.innerHTML = "当前未选择玩家 (点击玩家卡片下方的'选择发言'按钮)";
             }
@@ -1990,6 +2380,60 @@
             player.status = player.status === 'alive' ? 'dead' : 'alive';
             renderPlayers();
             saveGameData();
+        }
+        
+        // ========== 我的身份管理 ==========
+        function updateMyRoleDisplay() {
+            const myRoleDisplay = document.getElementById('myRoleDisplay');
+            const myCurrentRole = document.getElementById('myCurrentRole');
+            
+            if (gameState.myRole) {
+                myRoleDisplay.style.display = 'inline';
+                myCurrentRole.textContent = gameState.myRole;
+            } else {
+                myRoleDisplay.style.display = 'none';
+            }
+        }
+        
+        function showMyRoleModal() {
+            const modal = document.getElementById('myRoleModal');
+            const roleSelect = document.getElementById('myRoleSelect');
+            
+            roleSelect.innerHTML = '<option value="">请选择您的身份</option>';
+            
+            const allRoles = getAllRoleOptions();
+            allRoles.forEach(role => {
+                if (role !== "未知") {
+                    const option = document.createElement('option');
+                    option.value = role;
+                    option.textContent = role;
+                    if (role === gameState.myRole) {
+                        option.selected = true;
+                    }
+                    roleSelect.appendChild(option);
+                }
+            });
+            
+            modal.style.display = 'flex';
+        }
+        
+        function saveMyRole() {
+            const roleSelect = document.getElementById('myRoleSelect');
+            const selectedRole = roleSelect.value;
+            
+            if (selectedRole) {
+                gameState.myRole = selectedRole;
+                updateMyRoleDisplay();
+                saveGameData();
+                showNotification(`已设置您的身份为: ${selectedRole}`, 'success');
+            } else {
+                gameState.myRole = null;
+                updateMyRoleDisplay();
+                saveGameData();
+                showNotification(`已清除您的身份设置`, 'info');
+            }
+            
+            document.getElementById('myRoleModal').style.display = 'none';
         }
         
         // ========== 明牌身份和排除身份管理 ==========
@@ -2347,17 +2791,79 @@
             gameState.players.forEach(player => {
                 if (player.id === gameState.selectedPlayerId) return;
                 
-                const name = player.name;
-                const nameLower = name.toLowerCase();
-                const pinyin = convertToPinyin(name).toLowerCase();
-                const initials = getFirstLetters(name).toLowerCase();
+                const displayName = getPlayerDisplayName(player);
+                const customName = player.customName;
+                const playerNumber = player.number;
+                const shortName = getPlayerShortName(player);
                 
-                if (searchTerm && (nameLower.includes(searchTerm) || pinyin.includes(searchTerm) || initials.includes(searchTerm))) {
+                const nameLower = displayName.toLowerCase();
+                const customNameLower = customName.toLowerCase();
+                const pinyin = convertToPinyin(customName).toLowerCase();
+                const initials = getFirstLetters(customName).toLowerCase();
+                
+                // 匹配编号（支持纯数字匹配）
+                if (searchTerm && !isNaN(searchTerm) && parseInt(searchTerm) === playerNumber) {
                     matches.push({
                         player,
-                        matchType: nameLower.includes(searchTerm) ? 'name' : (pinyin.includes(searchTerm) ? 'pinyin' : 'initial'),
+                        matchType: 'number',
                         replaceStart: start,
-                        replaceEnd: end
+                        replaceEnd: end,
+                        displayText: displayName
+                    });
+                }
+                
+                // 匹配短名称（X号）
+                if (searchTerm && shortName.toLowerCase().includes(searchTerm)) {
+                    matches.push({
+                        player,
+                        matchType: 'short',
+                        replaceStart: start,
+                        replaceEnd: end,
+                        displayText: displayName
+                    });
+                }
+                
+                // 匹配完整显示名称
+                if (searchTerm && nameLower.includes(searchTerm)) {
+                    matches.push({
+                        player,
+                        matchType: 'full',
+                        replaceStart: start,
+                        replaceEnd: end,
+                        displayText: displayName
+                    });
+                }
+                
+                // 匹配自定义名称
+                if (searchTerm && customNameLower.includes(searchTerm)) {
+                    matches.push({
+                        player,
+                        matchType: 'custom',
+                        replaceStart: start,
+                        replaceEnd: end,
+                        displayText: displayName
+                    });
+                }
+                
+                // 匹配拼音
+                if (searchTerm && pinyin.includes(searchTerm)) {
+                    matches.push({
+                        player,
+                        matchType: 'pinyin',
+                        replaceStart: start,
+                        replaceEnd: end,
+                        displayText: displayName
+                    });
+                }
+                
+                // 匹配首字母
+                if (searchTerm && initials.includes(searchTerm)) {
+                    matches.push({
+                        player,
+                        matchType: 'initial',
+                        replaceStart: start,
+                        replaceEnd: end,
+                        displayText: displayName
                     });
                 }
             });
@@ -2367,47 +2873,65 @@
                 return;
             }
             
+            // 去重（同一个玩家可能匹配到多个条件）
+            const uniqueMatches = [];
+            const seenPlayerIds = new Set();
+            matches.forEach(match => {
+                if (!seenPlayerIds.has(match.player.id)) {
+                    seenPlayerIds.add(match.player.id);
+                    uniqueMatches.push(match);
+                }
+            });
+            
             suggestions.innerHTML = '';
-            matches.sort((a, b) => {
-                const order = { name: 0, pinyin: 1, initial: 2 };
+            
+            // 按匹配优先级排序
+            uniqueMatches.sort((a, b) => {
+                const order = { number: 0, short: 1, full: 2, custom: 3, pinyin: 4, initial: 5 };
                 return order[a.matchType] - order[b.matchType];
             });
             
-            const displayMatches = matches.slice(0, 5);
+            const displayMatches = uniqueMatches.slice(0, 5);
             displayMatches.forEach((match, index) => {
                 const suggestionItem = document.createElement('div');
                 suggestionItem.className = 'suggestion-item';
                 if (index === 0) suggestionItem.classList.add('active');
                 
-                const hint = match.matchType === 'name' ? '名称匹配' : match.matchType === 'pinyin' ? '拼音匹配' : '首字母匹配';
-                suggestionItem.innerHTML = `<span class="suggestion-player-name">${match.player.name}</span><span class="suggestion-hint">(${hint})</span>`;
+                const hintMap = {
+                    'number': '编号匹配',
+                    'short': '短名称匹配',
+                    'full': '全名匹配',
+                    'custom': '自定义名匹配',
+                    'pinyin': '拼音匹配',
+                    'initial': '首字母匹配'
+                };
+                
+                const hint = hintMap[match.matchType] || '匹配';
+                suggestionItem.innerHTML = `<span class="suggestion-player-name">${match.displayText}</span><span class="suggestion-hint">(${hint})</span>`;
                 suggestionItem.dataset.replaceStart = String(match.replaceStart);
                 suggestionItem.dataset.replaceEnd = String(match.replaceEnd);
-                suggestionItem.addEventListener('click', () => selectAutocompleteSuggestion(suggestionItem, match.player.name));
+                suggestionItem.dataset.displayText = match.displayText;
+                suggestionItem.addEventListener('click', () => selectAutocompleteSuggestion(suggestionItem));
                 suggestions.appendChild(suggestionItem);
             });
             suggestions.style.display = 'block';
         }
         
-        function selectAutocompleteSuggestion(suggestionItem, playerName = null) {
+        function selectAutocompleteSuggestion(suggestionItem) {
             const input = document.getElementById('speechInput');
             const text = input.value;
             
-            if (!playerName) {
-                const span = suggestionItem.querySelector('.suggestion-player-name');
-                playerName = span ? span.textContent : '';
-            }
-            
-            if (!playerName) return;
+            const displayText = suggestionItem.dataset.displayText;
+            if (!displayText) return;
             
             const replaceStart = parseInt(suggestionItem.dataset.replaceStart || '0', 10);
             const replaceEnd = parseInt(suggestionItem.dataset.replaceEnd || String(input.selectionStart), 10);
             
             const before = text.substring(0, replaceStart);
             const after = text.substring(replaceEnd);
-            input.value = before + playerName + after;
+            input.value = before + displayText + after;
             
-            const newPos = replaceStart + playerName.length;
+            const newPos = replaceStart + displayText.length;
             input.setSelectionRange(newPos, newPos);
             document.getElementById('autocompleteSuggestions').style.display = 'none';
             input.focus();
@@ -2479,7 +3003,7 @@
             const speech = {
                 id: Date.now(),
                 playerId: player.id,
-                playerName: player.name,
+                playerName: getPlayerDisplayName(player),
                 meeting: gameState.currentMeeting,
                 content: speechText,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -2492,7 +3016,7 @@
             renderSpeeches();
             document.getElementById('speechInput').value = '';
             saveGameData();
-            showNotification(`已记录${player.name}的发言`, 'success');
+            showNotification(`已记录${getPlayerDisplayName(player)}的发言`, 'success');
         }
         
         /**
@@ -2503,6 +3027,14 @@
             const content = speech.content;
             const contentLower = content.toLowerCase();
             const tagSet = new Set();
+            
+            // 获取所有玩家名称用于匹配
+            const playerNames = gameState.players.map(p => ({
+                displayName: getPlayerDisplayName(p).toLowerCase(),
+                customName: p.customName.toLowerCase(),
+                number: p.number,
+                shortName: getPlayerShortName(p).toLowerCase()
+            }));
             
             // 身份声明
             if (contentLower.includes('我是') || contentLower.includes('我的身份是') || contentLower.includes('我是鹅') || contentLower.includes('我是鸭子')) {
@@ -2517,42 +3049,49 @@
                 }
             });
             
-            // 修复：杀人事件识别 - 使用修复后的extractKillEvents函数
-            const names = gameState.players.map(p => p.name.toLowerCase());
+            // 杀人事件识别
+            const names = playerNames.map(p => p.customName);
             const events = extractKillEvents(contentLower, names);
             
             events.forEach(ev => {
-                const killer = gameState.players.find(p => p.name.toLowerCase() === ev.killerName);
-                const victim = gameState.players.find(p => p.name.toLowerCase() === ev.victimName);
+                const killer = gameState.players.find(p => p.customName.toLowerCase() === ev.killerName);
+                const victim = gameState.players.find(p => p.customName.toLowerCase() === ev.victimName);
                 
                 // 只有凶手会被标记为怀疑对象
-                if (killer && killer.name !== speech.playerName) {
-                    tagSet.add(JSON.stringify({ type: 'suspect', text: `怀疑:${killer.name}` }));
+                if (killer && getPlayerDisplayName(killer) !== speech.playerName) {
+                    tagSet.add(JSON.stringify({ type: 'suspect', text: `怀疑:${getPlayerDisplayName(killer)}` }));
                 }
                 
                 if (victim) {
-                    tagSet.add(JSON.stringify({ type: 'victim', text: `受害者:${victim.name}` }));
+                    tagSet.add(JSON.stringify({ type: 'victim', text: `受害者:${getPlayerDisplayName(victim)}` }));
                 }
             });
             
             // 可疑提及（除了杀人事件外的一般怀疑）
             gameState.players.forEach(player => {
-                if (player.name.toLowerCase() === speech.playerName?.toLowerCase()) return;
+                const playerDisplayName = getPlayerDisplayName(player);
+                if (playerDisplayName.toLowerCase() === speech.playerName?.toLowerCase()) return;
                 
                 // 检查是否有直接怀疑的表述
                 const suspectPatterns = [
-                    `怀疑${player.name}`,
-                    `${player.name}可疑`,
-                    `${player.name}有问题`,
-                    `可能是${player.name}`,
-                    `${player.name}是鸭子`,
-                    `${player.name}是杀手`
+                    `怀疑${player.customName}`,
+                    `怀疑${player.number}号`,
+                    `${player.customName}可疑`,
+                    `${player.number}号可疑`,
+                    `${player.customName}有问题`,
+                    `${player.number}号有问题`,
+                    `可能是${player.customName}`,
+                    `可能是${player.number}号`,
+                    `${player.customName}是鸭子`,
+                    `${player.number}号是鸭子`,
+                    `${player.customName}是杀手`,
+                    `${player.number}号是杀手`
                 ];
                 
                 const hasDirectSuspect = suspectPatterns.some(pattern => content.includes(pattern));
                 
                 if (hasDirectSuspect) {
-                    tagSet.add(JSON.stringify({ type: 'suspect', text: `怀疑:${player.name}` }));
+                    tagSet.add(JSON.stringify({ type: 'suspect', text: `怀疑:${getPlayerDisplayName(player)}` }));
                 }
             });
             
@@ -2578,7 +3117,7 @@
             
             const tmpSpeech = {
                 content: speechText,
-                playerName: (gameState.players.find(p => p.id === gameState.selectedPlayerId)?.name || ''),
+                playerName: (gameState.players.find(p => p.id === gameState.selectedPlayerId) ? getPlayerDisplayName(gameState.players.find(p => p.id === gameState.selectedPlayerId)) : ''),
                 tags: []
             };
             
@@ -2703,19 +3242,22 @@
                 
                 // 怀疑关系
                 gameState.players.forEach(player => {
-                    if (speech.content.includes(player.name) && (speech.content.includes('怀疑') || speech.content.includes('可能是'))) {
-                        suspicions.push(`${speech.playerName} 怀疑 ${player.name}`);
-                        if (!mentionedPlayers[player.name]) {
-                            mentionedPlayers[player.name] = { suspicions: 0, mentions: 0 };
+                    const displayName = getPlayerDisplayName(player);
+                    if (speech.content.includes(player.customName) || speech.content.includes(`${player.number}号`)) {
+                        if (speech.content.includes('怀疑') || speech.content.includes('可能是')) {
+                            suspicions.push(`${speech.playerName} 怀疑 ${displayName}`);
+                            if (!mentionedPlayers[displayName]) {
+                                mentionedPlayers[displayName] = { suspicions: 0, mentions: 0 };
+                            }
+                            mentionedPlayers[displayName].suspicious++;
                         }
-                        mentionedPlayers[player.name].suspicious++;
-                    }
-                    
-                    if (speech.content.includes(player.name) && player.name !== speech.playerName) {
-                        if (!mentionedPlayers[player.name]) {
-                            mentionedPlayers[player.name] = { suspicions: 0, mentions: 0 };
+                        
+                        if (displayName !== speech.playerName) {
+                            if (!mentionedPlayers[displayName]) {
+                                mentionedPlayers[displayName] = { suspicions: 0, mentions: 0 };
+                            }
+                            mentionedPlayers[displayName].mentions++;
                         }
-                        mentionedPlayers[player.name].mentions++;
                     }
                 });
                 
@@ -2757,7 +3299,7 @@
             let maxSuspicions = 0;
             Object.keys(mentionedPlayers).forEach(playerName => {
                 if (mentionedPlayers[playerName].suspicious > maxSuspicions) {
-                    maxSuspicions = mentionedPlayers[playerName].suspicious;
+                    maxSuspicions = mentionedPlayers[playerName].suspicions;
                     mostSuspicious = playerName;
                 }
             });
@@ -2769,8 +3311,8 @@
             // 沉默玩家
             const speakingPlayers = [...new Set(currentMeetingSpeeches.map(s => s.playerName))];
             const silentPlayers = gameState.players
-                .filter(p => p.status === 'alive' && !speakingPlayers.includes(p.name))
-                .map(p => p.name);
+                .filter(p => p.status === 'alive' && !speakingPlayers.includes(getPlayerDisplayName(p)))
+                .map(p => getPlayerDisplayName(p));
             
             if (silentPlayers.length > 0) {
                 summaryHTML += `<p><strong style="color:#ff9e00">沉默玩家：</strong> ${silentPlayers.join('、')} 在本轮会议中没有发言。</p>`;
@@ -2784,7 +3326,7 @@
                     const togetherCount = gameState.togetherGroups.filter(g => 
                         g.player1Id === p.id || g.player2Id === p.id
                     ).length;
-                    return `${p.name}${togetherCount > 0 ? ` (有${togetherCount}条在一起记录)` : ''}`;
+                    return `${getPlayerDisplayName(p)}${togetherCount > 0 ? ` (有${togetherCount}条在一起记录)` : ''}`;
                 }).join('、');
                 summaryHTML += `${isolatedNames} 在本轮会议前没有和任何玩家在一起。</p>`;
             } else {
@@ -2920,15 +3462,18 @@
             const playerSuspicionCount = {};
             gameState.players.forEach(player => {
                 if (player.status === 'alive') {
-                    playerSuspicionCount[player.name] = 0;
+                    playerSuspicionCount[getPlayerDisplayName(player)] = 0;
                 }
             });
             
             gameState.speeches.forEach(speech => {
                 gameState.players.forEach(player => {
-                    if (speech.content.includes(player.name) && (speech.content.includes('怀疑') || speech.content.includes('投') || speech.content.includes('票'))) {
-                        if (playerSuspicionCount[player.name] !== undefined) {
-                            playerSuspicionCount[player.name]++;
+                    const displayName = getPlayerDisplayName(player);
+                    if (speech.content.includes(player.customName) || speech.content.includes(`${player.number}号`)) {
+                        if (speech.content.includes('怀疑') || speech.content.includes('投') || speech.content.includes('票')) {
+                            if (playerSuspicionCount[displayName] !== undefined) {
+                                playerSuspicionCount[displayName]++;
+                            }
                         }
                     }
                 });
@@ -2948,7 +3493,12 @@
                 suggestionHTML += `<p>根据发言记录，玩家 <span class="highlight">${mostSuspectedPlayer}</span> 被提及怀疑 ${maxSuspicion} 次，建议优先投票。</p>`;
                 
                 const suspicionSpeeches = gameState.speeches
-                    .filter(speech => speech.content.includes(mostSuspectedPlayer) && (speech.content.includes('怀疑') || speech.content.includes('投') || speech.content.includes('票')))
+                    .filter(speech => {
+                        const player = gameState.players.find(p => getPlayerDisplayName(p) === mostSuspectedPlayer);
+                        if (!player) return false;
+                        return (speech.content.includes(player.customName) || speech.content.includes(`${player.number}号`)) && 
+                               (speech.content.includes('怀疑') || speech.content.includes('投') || speech.content.includes('票'));
+                    })
                     .slice(0, 3);
                     
                 if (suspicionSpeeches.length > 0) {
@@ -2966,7 +3516,7 @@
             const isolatedPlayers = getIsolatedPlayers();
             if (isolatedPlayers.length > 0) {
                 suggestionHTML += `<p><strong style="color:#f72585">注意孤立玩家：</strong>`;
-                suggestionHTML += `${isolatedPlayers.map(p => p.name).join('、')} 没有和任何玩家在一起，可能需要特别关注。</p>`;
+                suggestionHTML += `${isolatedPlayers.map(p => getPlayerDisplayName(p)).join('、')} 没有和任何玩家在一起，可能需要特别关注。</p>`;
             }
             
             suggestionHTML += `
@@ -2986,6 +3536,207 @@
         function clearAnalysis() {
             document.getElementById('summaryContent').innerHTML = "点击'生成会议总结'按钮，系统将分析所有发言并生成总结报告。";
             document.getElementById('contradictionsList').innerHTML = '';
+        }
+        
+        // ========== 对局记录功能 ==========
+        function loadMatchHistory() {
+            const savedHistory = localStorage.getItem('gooseGooseDuckMatchHistory');
+            if (savedHistory) {
+                gameState.matchHistory = JSON.parse(savedHistory);
+                updateWinRateDisplay();
+            }
+        }
+        
+        function saveMatchHistory() {
+            localStorage.setItem('gooseGooseDuckMatchHistory', JSON.stringify(gameState.matchHistory));
+        }
+        
+        function showEndGameModal() {
+            const modal = document.getElementById('endGameModal');
+            modal.style.display = 'flex';
+        }
+        
+        function recordMatchResult(isWin) {
+            // 获取当前日期
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('zh-CN');
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            
+            // 收集玩家信息
+            const playersInfo = gameState.players.map(player => ({
+                number: player.number,
+                customName: player.customName,
+                role: player.role,
+                status: player.status
+            }));
+            
+            // 创建对局记录
+            const matchRecord = {
+                id: Date.now(),
+                date: dateStr,
+                time: timeStr,
+                timestamp: now.getTime(),
+                isWin: isWin,
+                myRole: gameState.myRole || '未知',
+                players: playersInfo,
+                speeches: [...gameState.speeches], // 保存发言记录
+                meetingCount: gameState.currentMeeting
+            };
+            
+            // 添加到历史记录
+            gameState.matchHistory.unshift(matchRecord);
+            
+            // 限制历史记录数量（最多保存50条）
+            if (gameState.matchHistory.length > 50) {
+                gameState.matchHistory = gameState.matchHistory.slice(0, 50);
+            }
+            
+            // 保存到本地存储
+            saveMatchHistory();
+            
+            // 更新胜率显示
+            updateWinRateDisplay();
+            
+            // 显示对局记录面板
+            showMatchHistory();
+            
+            // 关闭模态框
+            document.getElementById('endGameModal').style.display = 'none';
+            
+            showNotification(`已记录本局游戏结果：${isWin ? '胜利' : '失败'}`, 'success');
+            
+            // 开始新游戏
+            newGame();
+        }
+        
+        function updateWinRateDisplay() {
+            // 获取今日日期
+            const today = new Date();
+            const todayDateStr = today.toLocaleDateString('zh-CN');
+            
+            // 筛选今日对局
+            const todayMatches = gameState.matchHistory.filter(match => match.date === todayDateStr);
+            
+            // 计算胜率
+            const totalMatches = todayMatches.length;
+            const wins = todayMatches.filter(match => match.isWin).length;
+            const losses = totalMatches - wins;
+            const winRate = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
+            
+            // 更新显示
+            document.getElementById('totalMatches').textContent = totalMatches;
+            document.getElementById('totalWins').textContent = wins;
+            document.getElementById('totalLosses').textContent = losses;
+            document.getElementById('winRateText').textContent = `${wins}胜 ${losses}负 (${winRate}%)`;
+            document.getElementById('winRateFill').style.width = `${winRate}%`;
+        }
+        
+        function showMatchHistory() {
+            // 隐藏主内容，显示对局记录
+            document.querySelector('.main-content').style.display = 'none';
+            document.getElementById('matchHistoryPanel').style.display = 'block';
+            
+            // 渲染对局记录列表
+            renderMatchHistoryList();
+        }
+        
+        function hideMatchHistory() {
+            // 显示主内容，隐藏对局记录
+            document.querySelector('.main-content').style.display = 'grid';
+            document.getElementById('matchHistoryPanel').style.display = 'none';
+        }
+        
+        function renderMatchHistoryList() {
+            const matchHistoryList = document.getElementById('matchHistoryList');
+            matchHistoryList.innerHTML = '';
+            
+            if (gameState.matchHistory.length === 0) {
+                matchHistoryList.innerHTML = '<div style="text-align: center; color: #a0a7c2; padding: 40px;">暂无对局记录，点击"结束本局"按钮保存对局记录</div>';
+                return;
+            }
+            
+            // 按日期分组
+            const matchesByDate = {};
+            gameState.matchHistory.forEach(match => {
+                if (!matchesByDate[match.date]) {
+                    matchesByDate[match.date] = [];
+                }
+                matchesByDate[match.date].push(match);
+            });
+            
+            // 渲染每个日期的记录
+            Object.keys(matchesByDate).forEach(date => {
+                const dateHeader = document.createElement('div');
+                dateHeader.className = 'panel-title';
+                dateHeader.style.marginTop = '20px';
+                dateHeader.style.marginBottom = '10px';
+                dateHeader.innerHTML = `<i class="fas fa-calendar-day"></i> ${date}`;
+                matchHistoryList.appendChild(dateHeader);
+                
+                matchesByDate[date].forEach(match => {
+                    const matchItem = document.createElement('div');
+                    matchItem.className = `match-item ${match.isWin ? 'win' : 'loss'}`;
+                    
+                    // 统计角色信息
+                    const roleCounts = {};
+                    match.players.forEach(player => {
+                        if (player.role !== '未知') {
+                            roleCounts[player.role] = (roleCounts[player.role] || 0) + 1;
+                        }
+                    });
+                    
+                    const roleInfo = Object.keys(roleCounts).map(role => `${role}×${roleCounts[role]}`).join('、');
+                    
+                    matchItem.innerHTML = `
+                        <div class="match-header">
+                            <div class="match-date">${match.time}</div>
+                            <div class="match-result ${match.isWin ? 'win' : 'loss'}">${match.isWin ? '胜利' : '失败'}</div>
+                        </div>
+                        
+                        <div class="match-details">
+                            <div>
+                                <div><strong>我的身份：</strong></div>
+                                <div class="my-role">${match.myRole}</div>
+                            </div>
+                            <div>
+                                <div><strong>会议次数：</strong> ${match.meetingCount}</div>
+                                <div><strong>发言记录：</strong> ${match.speeches.length} 条</div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div><strong>玩家身份分布：</strong> ${roleInfo || '无记录'}</div>
+                        </div>
+                        
+                        <div class="match-players">
+                            ${match.players.map(player => `
+                                <div class="match-player-tag">
+                                    <span>${player.number}号${player.customName !== `玩家${player.number}` ? `(${player.customName})` : ''}</span>
+                                    <span style="color: ${player.role === '未知' ? '#a0a7c2' : '#4cc9f0'}">${player.role}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="match-actions">
+                            <button class="delete-match-btn" onclick="deleteMatchRecord(${match.id})">
+                                <i class="fas fa-trash"></i> 删除记录
+                            </button>
+                        </div>
+                    `;
+                    
+                    matchHistoryList.appendChild(matchItem);
+                });
+            });
+        }
+        
+        function deleteMatchRecord(matchId) {
+            if (confirm("确定要删除这条对局记录吗？")) {
+                gameState.matchHistory = gameState.matchHistory.filter(match => match.id !== matchId);
+                saveMatchHistory();
+                updateWinRateDisplay();
+                renderMatchHistoryList();
+                showNotification("已删除对局记录", 'info');
+            }
         }
         
         // ========== 通知和工具函数 ==========
@@ -3110,6 +3861,24 @@
             document.getElementById('cancelTogetherBtn').addEventListener('click', () => {
                 document.getElementById('togetherModal').style.display = 'none';
             });
+            
+            // 我的身份事件
+            document.getElementById('setMyRoleBtn').addEventListener('click', showMyRoleModal);
+            document.getElementById('saveMyRoleBtn').addEventListener('click', saveMyRole);
+            document.getElementById('cancelMyRoleBtn').addEventListener('click', () => {
+                document.getElementById('myRoleModal').style.display = 'none';
+            });
+            
+            // 对局记录事件
+            document.getElementById('endGameBtn').addEventListener('click', showEndGameModal);
+            document.getElementById('recordWinBtn').addEventListener('click', () => recordMatchResult(true));
+            document.getElementById('recordLossBtn').addEventListener('click', () => recordMatchResult(false));
+            document.getElementById('cancelEndGameBtn').addEventListener('click', () => {
+                document.getElementById('endGameModal').style.display = 'none';
+            });
+            
+            document.getElementById('viewMatchHistoryBtn').addEventListener('click', showMatchHistory);
+            document.getElementById('closeMatchHistoryBtn').addEventListener('click', hideMatchHistory);
             
             const speechInput = document.getElementById('speechInput');
             speechInput.addEventListener('input', handleSpeechInput);
