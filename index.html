@@ -1456,6 +1456,9 @@
                     <button class="status-btn" id="viewMatchHistoryBtn">
                         <i class="fas fa-history"></i> 对局记录
                     </button>
+                    <button class="status-btn" id="screenshotOcrBtn">
+                        <i class="fas fa-camera"></i> 截图识名
+                    </button>
                 </div>
                 
                 <div class="player-count-control">
@@ -1627,6 +1630,39 @@
         </footer>
     </div>
     
+    <!-- 截图识名模态框 -->
+    <div class="modal" id="screenshotOcrModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <h3 class="modal-title"><i class="fas fa-camera"></i> 截图识名并填充玩家</h3>
+            <div class="modal-message">
+                <p>上传房间截图后，系统将自动识别中文昵称，并按网格顺序填充到玩家名称位。</p>
+            </div>
+            <div style="display:flex; gap: 16px; flex-wrap: wrap;">
+                <div style="flex: 1 1 520px;">
+                    <input type="file" id="ocrImageInput" accept="image/*" class="modal-input" style="margin-bottom: 10px;" />
+                    <canvas id="ocrCanvas" style="width:100%; max-height:420px; background:#0f0f1a; border:1px solid #2a3c5e; border-radius:8px;"></canvas>
+                    <div style="display:flex; gap:10px; margin-top:10px; align-items:center;">
+                        <label>行数</label>
+                        <input type="number" id="ocrRows" class="modal-input" value="3" min="1" max="6" style="width:80px;">
+                        <label>列数</label>
+                        <input type="number" id="ocrCols" class="modal-input" value="3" min="1" max="6" style="width:80px;">
+                        <label style="display:flex; align-items:center; gap:6px;">
+                            <input type="checkbox" id="ocrAutoCluster" /> 自动聚类
+                        </label>
+                        <button class="btn btn-primary" id="runOcrBtn">识别</button>
+                    </div>
+                </div>
+                <div style="flex: 1 1 300px;">
+                    <h4 style="color:#4cc9f0; margin-bottom:8px;">识别预览</h4>
+                    <div id="ocrNamesPreview" style="max-height:420px; overflow:auto; background:#1a2a42; border:1px solid #2a3c5e; border-radius:8px; padding:10px;"></div>
+                </div>
+            </div>
+            <div class="modal-buttons" style="margin-top: 16px;">
+                <button class="btn btn-primary" id="applyOcrNamesBtn">应用到玩家</button>
+                <button class="btn btn-danger" id="closeScreenshotOcrBtn">关闭</button>
+            </div>
+        </div>
+    </div>
     <!-- 添加自定义职业模态框 -->
     <div class="modal" id="addRoleModal">
         <div class="modal-content">
@@ -1780,6 +1816,8 @@
         </div>
     </div>
     
+    <!-- OCR 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
     <script>
         // ========== 全局变量 ==========
         const gameState = {
@@ -2201,11 +2239,17 @@
                 gameState.players = gameState.players.slice(0, playerCount);
             }
             
-            // 重新分配编号（确保连续）
+            // 重新分配编号与ID（确保连续且一致）
             gameState.players.forEach((player, index) => {
                 player.number = index + 1;
+                player.id = index + 1;
             });
             
+            // 重排后维护选中状态
+            if (gameState.selectedPlayerId) {
+                const selIndex = Math.max(0, Math.min(gameState.players.length - 1, gameState.selectedPlayerId - 1));
+                gameState.selectedPlayerId = selIndex + 1;
+            }
             renderPlayers();
             saveGameData();
             showNotification(`玩家数量已更新为 ${playerCount} 人`, 'success');
@@ -2480,6 +2524,118 @@
                 roleTag.innerHTML = `<span>${role}</span><button class="remove-btn" onclick="removeExcludedRole('${role}')"><i class="fas fa-times"></i></button>`;
                 excludedRolesList.appendChild(roleTag);
             });
+        }
+
+        /**
+         * 打开截图识名弹窗
+         */
+        function openScreenshotOcrModal(){
+            const modal = document.getElementById('screenshotOcrModal');
+            const preview = document.getElementById('ocrNamesPreview');
+            preview.innerHTML = '<div style="color:#a0a7c2;">请上传截图并点击识别</div>';
+            modal.style.display = 'flex';
+        }
+
+        /**
+         * 在canvas上绘制图片并返回其尺寸
+         */
+        function drawImageToCanvas(file){
+            return new Promise((resolve,reject)=>{
+                const canvas = document.getElementById('ocrCanvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.onload = ()=>{
+                    const maxW = 1200;
+                    const scale = Math.min(1, maxW / img.width);
+                    canvas.width = Math.floor(img.width * scale);
+                    canvas.height = Math.floor(img.height * scale);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve({width:canvas.width, height:canvas.height});
+                };
+                img.onerror = reject;
+                const reader = new FileReader();
+                reader.onload = e=>{ img.src = e.target.result; };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        /**
+         * 执行 OCR 识别，返回 words（含bbox与text）
+         */
+        async function runOcrOnCanvas(){
+            const canvas = document.getElementById('ocrCanvas');
+            const { data } = await Tesseract.recognize(canvas, 'chi_sim', { logger: ()=>{} });
+            return data.words || [];
+        }
+
+        /**
+         * 根据 rows/cols 生成网格并将文字映射到格子
+         */
+        function mapWordsToGrid(words, rows, cols, canvasSize){
+            const cells = Array.from({length: rows}, ()=> Array.from({length: cols}, ()=>[]));
+            const cellW = canvasSize.width / cols;
+            const cellH = canvasSize.height / rows;
+            words.forEach(w=>{
+                const x = (w.bbox.x0 + w.bbox.x1) / 2;
+                const y = (w.bbox.y0 + w.bbox.y1) / 2;
+                const c = Math.min(cols-1, Math.max(0, Math.floor(x / cellW)));
+                const r = Math.min(rows-1, Math.max(0, Math.floor(y / cellH)));
+                cells[r][c].push(w);
+            });
+            return cells;
+        }
+
+        /**
+         * 仅保留中文，按x排序合并为姓名
+         */
+        function extractNamesFromCells(cells){
+            const names = [];
+            for (let r=0; r<cells.length; r++){
+                for (let c=0; c<cells[r].length; c++){
+                    const ws = cells[r][c].slice().sort((a,b)=> a.bbox.x0 - b.bbox.x0);
+                    let text = ws.map(w=> (w.text||'').replace(/[^\u4e00-\u9fa5]/g,'')).join('');
+                    text = text.trim();
+                    names.push(text || '');
+                }
+            }
+            return names;
+        }
+
+        /**
+         * 在右侧预览面板渲染识别结果，可编辑
+         */
+        function renderOcrPreview(names){
+            const preview = document.getElementById('ocrNamesPreview');
+            preview.innerHTML='';
+            names.forEach((name, idx)=>{
+                const item = document.createElement('div');
+                item.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:8px;';
+                item.innerHTML = `<span style="width:48px; color:#a0a7c2;">#${idx+1}</span><input type="text" class="modal-input" value="${name}" data-idx="${idx}" style="flex:1;">`;
+                preview.appendChild(item);
+            });
+        }
+
+        /**
+         * 应用识别到的姓名到玩家卡片
+         */
+        function applyOcrNames(){
+            const inputs = document.querySelectorAll('#ocrNamesPreview input');
+            const names = Array.from(inputs).map(i=> (i.value||'').trim()).filter(n=> n.length>0);
+            const count = Math.min(16, names.length);
+            // 扩充玩家数量
+            while (gameState.players.length < count){
+                gameState.players.push({ id: gameState.players.length+1, number: gameState.players.length+1, customName:`玩家${gameState.players.length+1}`, role:'未知', status:'alive', color:getRandomColor(), isEditingName:false });
+            }
+            for (let i=0; i<count; i++){
+                gameState.players[i].customName = names[i];
+            }
+            // 统一重排 id/number
+            gameState.players.forEach((p, idx)=>{ p.id = idx+1; p.number = idx+1; });
+            saveGameData();
+            renderPlayers();
+            showNotification(`已应用 ${count} 个姓名`, 'success');
+            document.getElementById('screenshotOcrModal').style.display = 'none';
         }
 
         /**
@@ -3879,6 +4035,22 @@
             
             document.getElementById('viewMatchHistoryBtn').addEventListener('click', showMatchHistory);
             document.getElementById('closeMatchHistoryBtn').addEventListener('click', hideMatchHistory);
+            // 截图识名事件
+            document.getElementById('screenshotOcrBtn').addEventListener('click', openScreenshotOcrModal);
+            document.getElementById('closeScreenshotOcrBtn').addEventListener('click', ()=>{ document.getElementById('screenshotOcrModal').style.display='none'; });
+            document.getElementById('applyOcrNamesBtn').addEventListener('click', applyOcrNames);
+            document.getElementById('runOcrBtn').addEventListener('click', async ()=>{
+                const fileInput = document.getElementById('ocrImageInput');
+                const file = fileInput.files && fileInput.files[0];
+                if (!file){ showNotification('请先选择截图图片', 'warning'); return; }
+                const size = await drawImageToCanvas(file);
+                const words = await runOcrOnCanvas();
+                const rows = parseInt(document.getElementById('ocrRows').value)||3;
+                const cols = parseInt(document.getElementById('ocrCols').value)||3;
+                const cells = mapWordsToGrid(words, rows, cols, size);
+                const names = extractNamesFromCells(cells);
+                renderOcrPreview(names);
+            });
             
             const speechInput = document.getElementById('speechInput');
             speechInput.addEventListener('input', handleSpeechInput);
